@@ -1,0 +1,1 @@
+pyinstaller.exe .\"Generate view history report"\trakt_report_export.py -p .\ --clean --onefile

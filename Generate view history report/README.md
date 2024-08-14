@@ -28,3 +28,7 @@ To interact with Trakt using applications, we first need to generate secrets to 
   
   ![API app information](readme/api_app.png)
 
+The first time the script is launched, it will require the user to go to the Trakt website and to insert a validation code, to grant the access to the app.
+The script will keep waiting for the user's confirmation, and it will move forward automatically when done.
+The generated access token (valid for 3 months) will be displayed in the logs, and can be placed in the parameters.json to avoid to re-authenticate each time.
+The re-authentication will be anyway needed after the token expires.

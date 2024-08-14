@@ -16,11 +16,15 @@ The configuration of the tool can be set by modifying the parameters.json file a
 To interact with Trakt using applications, we first need to generate secrets to authenticate against.
 
 * Go to the Settings page under the user menu
+  
   ![User Settings menu](readme/user_menu.png)
 * Select "Your API Apps" and then add a new application by selecting "New Application"
+  
   ![Your API Apps menu](readme/api_apps.png)
 * Give the application a name, possibly a description and an image, set "urn:ietf:wg:oauth:2.0:oob" as "Redirect uri", and finally press "Save App".
+  
   ![New API App](readme/new_app.png)
 * When clicking onto the app, the "Client ID" and "Client Secret" are displayed
+  
   ![API app information](readme/api_app.png)
 

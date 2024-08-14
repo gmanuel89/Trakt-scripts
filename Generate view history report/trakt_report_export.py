@@ -216,6 +216,30 @@ def get_title_information(title_trakt_id: str, client_id: str) -> dict:
     # Return
     return title_information
 
+## Get title seasons
+def get_title_seasons(title_trakt_id: str, client_id: str, include_episodes=True) -> list[dict]:
+    # Initialise output
+    title_information = {}
+    # Headers
+    headers_api_call = {
+        'Content-Type': 'application/json',
+        'trakt-api-version': '2',
+        'trakt-api-key': client_id
+    }
+    # Define if to include episodes in the response
+    if include_episodes:
+        api_url_string = '?extended=episodes'
+    else:
+        api_url_string = ''
+    # Get info from Trakt
+    try:
+        title_info_from_trakt = requests.get('https://api.trakt.tv/shows/' + str(title_trakt_id) + '/seasons' + api_url_string, headers=headers_api_call)
+        title_information = title_info_from_trakt.json()
+    except:
+        traceback.print_exc()
+    # Return
+    return title_information
+
 ## Get title aliases
 def get_title_aliases(title_trakt_id: str, title_type: str, client_id: str) -> dict:
     # Initialise output
@@ -303,6 +327,69 @@ def add_progress_to_tv_shows(viewed_items_report: list[dict], user_watch_history
     # Return
     return viewed_items_report
 
+## Determine if it is a miniseries based on summary info
+def determine_if_miniseries(tv_show_summary_info: list[dict]) -> bool:
+    # Initialise
+    is_miniseries = False
+    # Get the seasons
+    tv_seasons = []
+    for seasn in tv_show_summary_info:
+        tv_seasons.append(int(seasn.get('number')))
+    # Convert it to a set and sort it
+    tv_seasons_unique = set(tv_seasons)
+    tv_seasons_unique = sorted(tv_seasons_unique)
+    # Determine if it is a miniseries
+    if len(tv_seasons_unique) == 1 and tv_seasons_unique[0] == 0:
+        is_miniseries = True
+    # Return
+    return is_miniseries
+
+## Add the percentage of completion to TV shows
+def add_percentage_of_completion_to_tv_shows(viewed_items_report: list[dict], user_watch_history: list[dict], client_id: str) -> list[dict]:
+    # For each viewed item
+    for vwd in viewed_items_report:
+        # Initialise
+        vwd['watchedEpisodes'] = None
+        vwd['percentageOfCompletion'] = None
+        #vwd['isMiniseries'] = None
+        try:
+            # Proceed only if it is a TV show
+            if vwd.get('type') == 'episode' or vwd.get('type') == 'show':
+                # Build a sub-history only for the selected show
+                history_for_selected_show = []
+                for hst in user_watch_history:
+                    if vwd.get('type') == hst.get('type'):
+                        if vwd.get('traktId') == hst.get('show').get('ids').get('trakt'):
+                            history_for_selected_show.append(hst)
+                # Determine the episodes watched (discard duplicates from the history)
+                episodes_watched = []
+                for epsd in history_for_selected_show:
+                    episode_details = {
+                        'season': epsd.get('episode').get('season'),
+                        'episode': epsd.get('episode').get('number')
+                    }
+                    if episode_details not in episodes_watched:
+                        episodes_watched.append(episode_details)
+                # Count the watched episoded
+                number_of_watched_episodes = len(episodes_watched)
+                # Get the TV shows summary
+                tv_show_summary_info = get_title_seasons(vwd.get('traktId'), client_id, True)
+                # Determine if a title is a miniseries
+                #vwd['isMiniseries'] = determine_if_miniseries(tv_show_summary_info)
+                # Get the total number of episodes from the summary
+                total_number_of_episodes = 0
+                for seasn in tv_show_summary_info:
+                    # Discard the specials
+                    if seasn.get('number') != 0:
+                        total_number_of_episodes = total_number_of_episodes + len(seasn.get('episodes'))
+                # Get the percentage
+                vwd['watchedEpisodes'] = str(number_of_watched_episodes) + ' / ' + str(total_number_of_episodes)
+                vwd['percentageOfCompletion'] = round(number_of_watched_episodes / total_number_of_episodes * 100, 1)
+        except:
+            traceback.print_exc()
+    # Return
+    return viewed_items_report
+
 ## Add the aliases to shows (use language codes)
 def add_aliases_to_titles(viewed_items_report: list[dict], client_id: str, languages=['it']) -> list[dict]:
     # For each viewed item
@@ -384,12 +471,15 @@ user_watch_history = get_watch_history_for_user(trakt_username, client_id, acces
 # Extract the viewed items from the history
 print('Extracting the viewed items from the watch history...')
 viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
-# Add the progress to TV shows
-print('Getting watch progress for shows...')
-viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
 # Add aliases to titles
 print('Getting show aliases...')
 viewed_items_report = add_aliases_to_titles(viewed_items_report, client_id, ['it'])
+# Add the progress to TV shows
+print('Getting watch progress for shows...')
+viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
+# Add percentage of completion to shows
+print('Getting percentage of completion for shows...')
+viewed_items_report = add_percentage_of_completion_to_tv_shows(viewed_items_report, user_watch_history, client_id)
 # Print report
 print('Writing output report file...')
 with open (report_csv_file_name, 'w+', encoding='UTF8', newline='') as output_file:

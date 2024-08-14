@@ -233,6 +233,34 @@ def extract_viewed_items_from_watch_history(user_watch_history: list[dict]) -> l
     # Return
     return viewed_items
 
+## Add the progress to TV shows
+def add_progress_to_tv_shows(viewed_items_report: list[dict], user_watch_history: list[dict]) -> list[dict]:
+    # For each viewed item
+    for vwd in viewed_items_report:
+        # Initialise
+        vwd['latestWatchedEpisode'] = None
+        try:
+            # Proceed only if it is a TV show
+            if vwd.get('type') == 'episode' or vwd.get('type') == 'show':
+                # Build a sub-history only for the selected show
+                history_for_selected_show = []
+                for hst in user_watch_history:
+                    if vwd.get('type') == hst.get('type'):
+                        if vwd.get('traktId') == hst.get('show').get('ids').get('trakt'):
+                            history_for_selected_show.append(hst)
+                # Determine the last episode watched
+                latestSeason = 0
+                latestEpisode = 0
+                for epsd in history_for_selected_show:
+                    if epsd.get('episode').get('season') > latestSeason and epsd.get('episode').get('number') > latestEpisode:
+                        vwd['latestWatchedEpisode'] = str(epsd.get('episode').get('season')) + 'x' + str(epsd.get('episode').get('number'))
+                        latestSeason = epsd.get('episode').get('season')
+                        latestEpisode = epsd.get('episode').get('number')
+        except:
+            traceback.print_exc()
+    # Return
+    return viewed_items_report
+
 ## Check in to a Trakt title
 def checkin_to_trakt(show_title: str, show_year: int, show_trakt_id: str, season_number: int, episode_number: int, watched_at: str, client_id: str, access_token: str) -> requests.Response | None:
     # Initialise output
@@ -293,9 +321,11 @@ else:
 # Get user's history
 user_watch_history = get_watch_history_for_user(trakt_username, client_id, access_token, None, None)
 # Extract the viewed items from the history
-viewed_items = extract_viewed_items_from_watch_history(user_watch_history)
+viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
+# Add the progress to TV shows
+viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
 # Print report
 with open (report_csv_file_name, 'w+', encoding='UTF8', newline='') as output_file:
-    csv_writer = csv.DictWriter(output_file, fieldnames=viewed_items[0].keys())
+    csv_writer = csv.DictWriter(output_file, fieldnames=viewed_items_report[0].keys())
     csv_writer.writeheader()
-    csv_writer.writerows(viewed_items)
+    csv_writer.writerows(viewed_items_report)

@@ -110,6 +110,7 @@ def get_user_auth_confirmation(device_code: str, client_id: str, client_secret: 
                 trakt_access_token = trakt_authentication_response.json().get('access_token')
                 print('Access granted!\nToken: %s' %trakt_access_token)
                 print('The token is valid for 3 months, write it down and use it for future authentication')
+                print('by placing it in the "accessToken" field in the parameters.json file')
                 break
             else:
                 if trakt_authentication_response.status_code == 400:

@@ -1,7 +1,7 @@
 {
     "trakt": {
         "clientId" : "***",
-        "clietSecret" : "***",
+        "clientSecret" : "***",
         "username" : "gmanuel89",
         "accessToken" : "***"
     },

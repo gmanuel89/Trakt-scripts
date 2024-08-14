@@ -197,6 +197,48 @@ def get_watch_history_for_user(user_id: str, client_id: str, access_token: str, 
     # Return
     return user_watch_history
 
+## Get title information
+def get_title_information(title_trakt_id: str, client_id: str) -> dict:
+    # Initialise output
+    title_information = {}
+    # Headers
+    headers_api_call = {
+        'Content-Type': 'application/json',
+        'trakt-api-version': '2',
+        'trakt-api-key': client_id
+    }
+    # Get info from Trakt
+    try:
+        title_info_from_trakt = requests.get('https://api.trakt.tv/shows/' + str(title_trakt_id), headers=headers_api_call)
+        title_information = title_info_from_trakt.json()
+    except:
+        traceback.print_exc()
+    # Return
+    return title_information
+
+## Get title aliases
+def get_title_aliases(title_trakt_id: str, title_type: str, client_id: str) -> dict:
+    # Initialise output
+    title_alias_info = {}
+    # Headers
+    headers_api_call = {
+        'Content-Type': 'application/json',
+        'trakt-api-version': '2',
+        'trakt-api-key': client_id
+    }
+    # Get info from Trakt
+    try:
+        if title_type == 'show' or title_type == 'episode':
+            title_type_string = 'shows'
+        else:
+            title_type_string = 'movies'
+        title_alias_info_from_trakt = requests.get('https://api.trakt.tv/' + title_type_string + '/' + str(title_trakt_id) + '/aliases', headers=headers_api_call)
+        title_alias_info = title_alias_info_from_trakt.json()
+    except:
+        traceback.print_exc()
+    # Return
+    return title_alias_info
+
 ## Extracted viewed items from history
 def extract_viewed_items_from_watch_history(user_watch_history: list[dict]) -> list[dict]:
     # Initialise output
@@ -261,6 +303,24 @@ def add_progress_to_tv_shows(viewed_items_report: list[dict], user_watch_history
     # Return
     return viewed_items_report
 
+## Add the aliases to shows (use language codes)
+def add_aliases_to_titles(viewed_items_report: list[dict], client_id: str, languages=['it']) -> list[dict]:
+    # For each viewed item
+    for vwd in viewed_items_report:
+        try:
+            # Get all the aliases for the title
+            title_aliases = get_title_aliases(vwd.get('traktId'), vwd.get('type'), client_id)
+            # Get aliases for each language
+            for lang in languages:
+                vwd['alias ' + lang] = None
+                for als in title_aliases:
+                    if str(lang).lower() == str(als.get('country')).lower():
+                        vwd['alias ' + lang] = als.get('title')
+        except:
+            traceback.print_exc()
+    # Return
+    return viewed_items_report
+
 ## Check in to a Trakt title
 def checkin_to_trakt(show_title: str, show_year: int, show_trakt_id: str, season_number: int, episode_number: int, watched_at: str, client_id: str, access_token: str) -> requests.Response | None:
     # Initialise output
@@ -319,12 +379,19 @@ else:
     if trakt_device_code is not None:
         trakt_device_code_confirmation = get_user_auth_confirmation(trakt_device_code.get('device_code'), client_id, client_secret)
 # Get user's history
+print('Getting user watch history...')
 user_watch_history = get_watch_history_for_user(trakt_username, client_id, access_token, None, None)
 # Extract the viewed items from the history
+print('Extracting the viewed items from the watch history...')
 viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
 # Add the progress to TV shows
+print('Getting watch progress for shows...')
 viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
+# Add aliases to titles
+print('Getting show aliases...')
+viewed_items_report = add_aliases_to_titles(viewed_items_report, client_id, ['it'])
 # Print report
+print('Writing output report file...')
 with open (report_csv_file_name, 'w+', encoding='UTF8', newline='') as output_file:
     csv_writer = csv.DictWriter(output_file, fieldnames=viewed_items_report[0].keys())
     csv_writer.writeheader()

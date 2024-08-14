@@ -383,7 +383,7 @@ def add_percentage_of_completion_to_tv_shows(viewed_items_report: list[dict], us
                     if seasn.get('number') != 0:
                         total_number_of_episodes = total_number_of_episodes + len(seasn.get('episodes'))
                 # Get the percentage
-                vwd['watchedEpisodes'] = str(number_of_watched_episodes) + ' / ' + str(total_number_of_episodes)
+                vwd['watchedEpisodes'] = str(number_of_watched_episodes) + '  of  ' + str(total_number_of_episodes)
                 vwd['percentageOfCompletion'] = round(number_of_watched_episodes / total_number_of_episodes * 100, 1)
         except:
             traceback.print_exc()
@@ -399,10 +399,10 @@ def add_aliases_to_titles(viewed_items_report: list[dict], client_id: str, langu
             title_aliases = get_title_aliases(vwd.get('traktId'), vwd.get('type'), client_id)
             # Get aliases for each language
             for lang in languages:
-                vwd['alias ' + lang] = None
+                vwd['alias (%s)' %lang] = None
                 for als in title_aliases:
                     if str(lang).lower() == str(als.get('country')).lower():
-                        vwd['alias ' + lang] = als.get('title')
+                        vwd['alias (%s)' %lang] = als.get('title')
         except:
             traceback.print_exc()
     # Return
@@ -453,6 +453,17 @@ def checkin_to_trakt(show_title: str, show_year: int, show_trakt_id: str, season
     # Return
     return check_in_response
 
+## Rename CSV headers
+def rename_csv_headers(csv_content: list[dict], renaming_map: dict) -> list[dict]:
+    # For each line
+    for line in csv_content:
+        # Get the mapping for rename
+        for old_hdr in renaming_map.keys():
+            if old_hdr in line.keys():
+                line[renaming_map.get(old_hdr)] = line.pop(old_hdr)
+    # Return
+    return csv_content
+
 
 ##### SCRIPT EXECUTION
 # Test if the provided token is valid
@@ -482,6 +493,8 @@ print('Getting percentage of completion for shows...')
 viewed_items_report = add_percentage_of_completion_to_tv_shows(viewed_items_report, user_watch_history, client_id)
 # Print report
 print('Writing output report file...')
+csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'latestWatchedEpisode': 'Last Watched Episode', 'watchedEpisodes': 'Watched Episodes', 'percentageOfCompletion': 'Percentage Of Completion'}
+viewed_items_report = rename_csv_headers(viewed_items_report, csv_header_renamed)
 with open (report_csv_file_name, 'w+', encoding='UTF8', newline='') as output_file:
     csv_writer = csv.DictWriter(output_file, fieldnames=viewed_items_report[0].keys())
     csv_writer.writeheader()

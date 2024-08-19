@@ -7,6 +7,6 @@
     },
     "data" : {
         "redirectDebugMessagesToLogFile" : false,
-        "outputFormat" : "CSV"
+        "outputFormat" : "xlsx"
     }
 }

@@ -32,6 +32,10 @@ else:
     trakt_device_code = generate_trakt_device_code(client_id)
     if trakt_device_code is not None:
         trakt_device_code_confirmation = get_user_auth_confirmation(trakt_device_code.get('device_code'), client_id, client_secret)
+## OUTPUT
+if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+    import openpyxl
+    output_workbook = openpyxl.Workbook()
 ## WATCHLIST
 # Get user's watchlist
 print('Getting user watchlist...')
@@ -39,11 +43,16 @@ user_watchlist = get_watchlist_for_user(trakt_username, client_id, access_token,
 # Extract the items from the watchlist
 print('Extracting the items from the watchlist...')
 watchlist_items_report = extract_items_from_watchlist(user_watchlist)
+# Add aliases to titles
+print('Getting show aliases...')
+watchlist_items_report = add_aliases_to_titles(watchlist_items_report, client_id, ['it'])
 # Print report
 print('Writing output report file...')
-csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'listedAt': 'Listed At'}
-watchlist_items_report = rename_csv_headers(watchlist_items_report, csv_header_renamed)
-write_csv_file(watchlist_items_report, 'Trakt watchlist report.csv')
+watchlist_items_report = fix_report_layout(watchlist_items_report)
+if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+    output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, 'Trakt watchlist report', output_workbook)
+else:
+    write_csv_file(watchlist_items_report, 'Trakt watchlist report.csv')
 ## WATCH HISTORY
 # Get user's history
 print('Getting user watch history...')
@@ -65,9 +74,14 @@ print('Getting status for shows...')
 viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, client_id)
 # Print report
 print('Writing output report file...')
-csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'latestWatchedEpisode': 'Last Watched Episode', 'watchedEpisodes': 'Watched Episodes', 'percentageOfCompletion': 'Percentage Of Completion', 'showStatus': 'Status'}
-viewed_items_report = rename_csv_headers(viewed_items_report, csv_header_renamed)
-write_csv_file(viewed_items_report, 'Trakt history report.csv')
+viewed_items_report = fix_report_layout(viewed_items_report)
+if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+    output_workbook = write_spreadsheet_to_workbook(viewed_items_report, 'Trakt history report', output_workbook)
+else:
+    write_csv_file(viewed_items_report, 'Trakt history report.csv')
+## OUTPUT
+if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+    write_workbook(output_workbook, None, 'Trakt report.xlsx', True)
 ## LOG FILE
 # Write the log file
 if redirect_debug_messages_to_log_file:

@@ -12,8 +12,8 @@ client_id = configuration.get('trakt').get('clientId')
 client_secret = configuration.get('trakt').get('clientSecret')
 access_token = configuration.get('trakt').get('accessToken')
 trakt_username = configuration.get('trakt').get('username')
-report_csv_file_name = configuration.get('data').get('outputCsvReportFileName')
 redirect_debug_messages_to_log_file = configuration.get('data').get('redirectDebugMessagesToLogFile')
+output_format = configuration.get('data').get('outputFormat')
 
 ##### SCRIPT EXECUTION
 # Initialise log file
@@ -46,12 +46,13 @@ viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_h
 print('Getting percentage of completion for shows...')
 viewed_items_report = add_percentage_of_completion_to_tv_shows(viewed_items_report, user_watch_history, client_id)
 # Add if series is over
+print('Getting status for shows...')
 viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, client_id)
 # Print report
 print('Writing output report file...')
 csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'latestWatchedEpisode': 'Last Watched Episode', 'watchedEpisodes': 'Watched Episodes', 'percentageOfCompletion': 'Percentage Of Completion', 'showStatus': 'Status'}
 viewed_items_report = rename_csv_headers(viewed_items_report, csv_header_renamed)
-write_csv_file(viewed_items_report, report_csv_file_name)
+write_csv_file(viewed_items_report, 'Trakt history report.csv')
 # Write the log file
 if redirect_debug_messages_to_log_file:
     log_file.close()

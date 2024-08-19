@@ -7,6 +7,6 @@
     },
     "data" : {
         "redirectDebugMessagesToLogFile" : false,
-        "outputCsvReportFileName" : "Trakt history report.csv"
+        "outputFormat" : "CSV"
     }
 }

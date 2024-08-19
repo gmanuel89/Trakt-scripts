@@ -7,3 +7,4 @@ from trakt.get_title_information import get_title_information
 from trakt.get_title_seasons import get_title_seasons
 from trakt.get_user_auth_confirmation import get_user_auth_confirmation
 from trakt.get_watch_history_for_user import get_watch_history_for_user
+from trakt.get_watchlist_for_user import get_watchlist_for_user

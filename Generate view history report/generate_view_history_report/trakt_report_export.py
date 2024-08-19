@@ -1,5 +1,6 @@
 ## Import libraries
 import json
+import sys
 
 ## Import functions
 from trakt_report_export import *
@@ -12,9 +13,13 @@ client_secret = configuration.get('trakt').get('clientSecret')
 access_token = configuration.get('trakt').get('accessToken')
 trakt_username = configuration.get('trakt').get('username')
 report_csv_file_name = configuration.get('data').get('outputCsvReportFileName')
-
+redirect_debug_messages_to_log_file = configuration.get('data').get('redirectDebugMessagesToLogFile')
 
 ##### SCRIPT EXECUTION
+# Initialise log file
+if redirect_debug_messages_to_log_file:
+    log_file = open("trakt_report_export.log", "w")
+    sys.stdout = log_file
 # Test if the provided token is valid
 access_token_validity = check_trakt_access_token_validity(access_token, client_id, trakt_username)
 if access_token_validity:
@@ -45,3 +50,6 @@ print('Writing output report file...')
 csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'latestWatchedEpisode': 'Last Watched Episode', 'watchedEpisodes': 'Watched Episodes', 'percentageOfCompletion': 'Percentage Of Completion'}
 viewed_items_report = rename_csv_headers(viewed_items_report, csv_header_renamed)
 write_csv_file(viewed_items_report, report_csv_file_name)
+# Write the log file
+if redirect_debug_messages_to_log_file:
+    log_file.close()

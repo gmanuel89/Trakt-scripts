@@ -6,6 +6,7 @@
         "accessToken" : "***"
     },
     "data" : {
+        "redirectDebugMessagesToLogFile" : false,
         "outputCsvReportFileName" : "Trakt history report.csv"
     }
 }

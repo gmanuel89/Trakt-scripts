@@ -45,9 +45,11 @@ viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_h
 # Add percentage of completion to shows
 print('Getting percentage of completion for shows...')
 viewed_items_report = add_percentage_of_completion_to_tv_shows(viewed_items_report, user_watch_history, client_id)
+# Add if series is over
+viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, client_id)
 # Print report
 print('Writing output report file...')
-csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'latestWatchedEpisode': 'Last Watched Episode', 'watchedEpisodes': 'Watched Episodes', 'percentageOfCompletion': 'Percentage Of Completion'}
+csv_header_renamed = {'title': 'Title', 'year': 'Year', 'type': 'Type', 'traktId': 'Trakt ID', 'imdbId': 'IMDB ID', 'latestWatchedEpisode': 'Last Watched Episode', 'watchedEpisodes': 'Watched Episodes', 'percentageOfCompletion': 'Percentage Of Completion', 'showStatus': 'Status'}
 viewed_items_report = rename_csv_headers(viewed_items_report, csv_header_renamed)
 write_csv_file(viewed_items_report, report_csv_file_name)
 # Write the log file

@@ -1,0 +1,11 @@
+{
+    "trakt": {
+        "clientId" : "***",
+        "clientSecret" : "***",
+        "username" : "gmanuel89",
+        "accessToken" : "***"
+    },
+    "data" : {
+        "outputCsvReportFileName" : "Trakt history report.csv"
+    }
+}

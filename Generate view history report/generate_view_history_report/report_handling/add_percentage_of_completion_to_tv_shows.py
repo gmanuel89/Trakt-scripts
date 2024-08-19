@@ -8,7 +8,7 @@
 import traceback
 
 ## Import functions
-from trakt_report_export.get_title_seasons import get_title_seasons
+from trakt import get_title_seasons
 
 ## Add the percentage of completion to TV shows (in the extracted report)
 def add_percentage_of_completion_to_tv_shows(viewed_items_report: list[dict], user_watch_history: list[dict], client_id: str) -> list[dict]:

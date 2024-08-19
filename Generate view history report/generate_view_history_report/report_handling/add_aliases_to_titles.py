@@ -8,7 +8,7 @@
 import traceback
 
 ## Import functions
-from trakt_report_export.get_title_aliases import get_title_aliases
+from trakt import get_title_aliases
 
 ## Add the aliases to shows (use language codes) (in the extracted report)
 def add_aliases_to_titles(viewed_items_report: list[dict], client_id: str, languages=['it']) -> list[dict]:

@@ -3,7 +3,8 @@ import json
 import sys
 
 ## Import functions
-from trakt_report_export import *
+from trakt import *
+from report_handling import *
 
 # Read configuration file
 configuration_file_path = 'parameters.json'

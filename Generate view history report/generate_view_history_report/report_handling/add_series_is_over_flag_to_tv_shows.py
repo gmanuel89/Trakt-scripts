@@ -8,7 +8,7 @@
 import traceback
 
 ## Import functions
-from trakt_report_export.get_title_information import get_title_information
+from trakt import get_title_information
 
 ## Add the flag of "is the series over" to TV shows (in the extracted report)
 def add_series_is_over_flag_to_tv_shows(viewed_items_report: list[dict], client_id: str) -> list[dict]:

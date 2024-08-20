@@ -1,6 +1,7 @@
 ## Import libraries
 import json
 import sys
+import traceback
 
 ## Import functions
 from trakt import *
@@ -31,7 +32,15 @@ else:
     # Generate a new Access Token
     trakt_device_code = generate_trakt_device_code(client_id)
     if trakt_device_code is not None:
-        trakt_device_code_confirmation = get_user_auth_confirmation(trakt_device_code.get('device_code'), client_id, client_secret)
+        access_token = get_user_auth_confirmation(trakt_device_code.get('device_code'), client_id, client_secret)
+        try:
+            print('Attempting to automatically put the access token in the parameters.json file...')
+            configuration['trakt']['accessToken'] = access_token
+            with open(configuration_file_path, 'w') as param_file:
+                json.dump(configuration, param_file, indent=4)
+            print('New access token put in the parameters.json file!')
+        except:
+            traceback.print_exc()
 ## OUTPUT
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
     import openpyxl

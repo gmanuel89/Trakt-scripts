@@ -1,1 +1,2 @@
+# Run this command from the repository home directory
 pyinstaller.exe .\"Generate view history report"\"generate_view_history_report"\run_trakt_report_export.py -p .\"Generate view history report" --clean --onefile

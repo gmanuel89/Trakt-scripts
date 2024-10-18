@@ -10,8 +10,10 @@ The configuration of the tool can be set by modifying the parameters.json file a
   * **username**: the username of the targeted user (i.e. what comes after the "https://trakt.tv/users/" URL when seeing a user's profile)
   * **accessToken**: the access token generated the first time this tool is authenticated to Trakt
 * **data**: parameters for the download process:
+  * **titleLanguages**: the additional languages (language codes) in which to display the title of the show
   * **redirectDebugMessagesToLogFile**: if to redirect all the console messages to a log file
   * **outputFormat**: the output format of the report file (can be "csv" or "xlsx")
+
 
 ## How to generate the Client ID and Client Secret pair
 To interact with Trakt using applications, we first need to generate secrets to authenticate against.

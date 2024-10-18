@@ -6,16 +6,18 @@ import traceback
 ## Import functions
 from trakt import *
 from report_handling import *
+## Import constants
+from constants import *
 
 # Read configuration file
-configuration_file_path = 'parameters.json'
+configuration_file_path = CONFIGURATION_FILE_PATH
 configuration = json.loads(open(configuration_file_path).read())
-client_id = configuration.get('trakt').get('clientId')
-client_secret = configuration.get('trakt').get('clientSecret')
-access_token = configuration.get('trakt').get('accessToken')
-trakt_username = configuration.get('trakt').get('username')
-redirect_debug_messages_to_log_file = configuration.get('data').get('redirectDebugMessagesToLogFile')
-output_format = configuration.get('data').get('outputFormat')
+client_id = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_CLIENT_ID)
+client_secret = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_CLIENT_SECRET)
+access_token = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN)
+trakt_username = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_USERNAME)
+redirect_debug_messages_to_log_file = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_REDIRECT_TO_LOG_FILE)
+output_format = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_OUTPUT_FORMAT)
 
 ##### SCRIPT EXECUTION
 # Initialise log file
@@ -34,11 +36,11 @@ else:
     if trakt_device_code is not None:
         access_token = get_user_auth_confirmation(trakt_device_code.get('device_code'), client_id, client_secret)
         try:
-            print('Attempting to automatically put the access token in the parameters.json file...')
-            configuration['trakt']['accessToken'] = access_token
+            print('Attempting to automatically put the access token in the %s file...' %configuration_file_path)
+            configuration[PARAMETERS_JSON_KEY_TRAKT][PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN] = access_token
             with open(configuration_file_path, 'w') as param_file:
                 json.dump(configuration, param_file, indent=4)
-            print('New access token put in the parameters.json file!')
+            print('New access token put in the %s file!' %configuration_file_path)
         except:
             traceback.print_exc()
 ## OUTPUT
@@ -59,9 +61,9 @@ watchlist_items_report = add_aliases_to_titles(watchlist_items_report, client_id
 print('Writing output report file...')
 watchlist_items_report = fix_report_layout(watchlist_items_report)
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, 'Trakt watchlist report', output_workbook, True, True)
+    output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME, output_workbook, True, True)
 else:
-    write_csv_file(watchlist_items_report, 'Trakt watchlist report.csv')
+    write_csv_file(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME + '.csv')
 ## WATCH HISTORY
 # Get user's history
 print('Getting user watch history...')
@@ -85,12 +87,12 @@ viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, c
 print('Writing output report file...')
 viewed_items_report = fix_report_layout(viewed_items_report)
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(viewed_items_report, 'Trakt history report', output_workbook, True, True)
+    output_workbook = write_spreadsheet_to_workbook(viewed_items_report, HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
 else:
-    write_csv_file(viewed_items_report, 'Trakt history report.csv')
+    write_csv_file(viewed_items_report, HISTORY_REPORT_FILE_NAME + '.csv')
 ## OUTPUT
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    write_workbook(output_workbook, None, 'Trakt report.xlsx', True)
+    write_workbook(output_workbook, None, REPORT_EXCEL_FILE_NAME + '.xlsx', True)
 ## LOG FILE
 # Write the log file
 if redirect_debug_messages_to_log_file:

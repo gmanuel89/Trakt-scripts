@@ -10,7 +10,7 @@ from langcodes import *
 ## Fix the input language code
 def fix_input_language_codes(language_codes: str | list[str]) -> list[str]:
     # If not provided...
-    if language_codes is None or language_codes == '' or len(language_codes) > 0:
+    if language_codes is None or language_codes == '' or len(language_codes) == 0:
         return ['it']
     # Fix input type
     if isinstance(language_codes, str): title_languages = [title_languages]

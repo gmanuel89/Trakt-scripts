@@ -11,7 +11,7 @@ from constants import *
 ## Fix the layout of the report
 def fix_report_layout(report_content: list[dict]) -> list[dict]:
     # Rename and order headers
-    csv_header_renamed_and_ordered = {'title': OUTPUT_REPORT_COLUMN_TITLE,
+    csv_header_renamed_and_ordered = {'title': OUTPUT_REPORT_COLUMN_TITLE + ' (english)',
                                       'year': OUTPUT_REPORT_COLUMN_YEAR,
                                       'type': OUTPUT_REPORT_COLUMN_TYPE,
                                       'traktId': OUTPUT_REPORT_COLUMN_TRAKT_ID,

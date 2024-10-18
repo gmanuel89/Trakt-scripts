@@ -16,10 +16,11 @@ def add_aliases_to_titles(viewed_items_report: list[dict], show_aliases: dict, l
             title_aliases = show_aliases.get(vwd.get('traktId'))
             # Get aliases for each language
             for lang in languages:
-                vwd['alias (%s)' %lang] = None
+                alias_dictionary_key = 'alias (%s)' %(str(lang).lower())
+                vwd[alias_dictionary_key] = None
                 for als in title_aliases:
                     if str(lang).lower() == str(als.get('country')).lower():
-                        vwd['alias (%s)' %lang] = als.get('title')
+                        vwd[alias_dictionary_key] = als.get('title')
         except:
             traceback.print_exc()
     # Return

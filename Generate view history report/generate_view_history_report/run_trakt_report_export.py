@@ -56,7 +56,10 @@ print('Extracting the items from the watchlist...')
 watchlist_items_report = extract_items_from_watchlist(user_watchlist)
 # Add aliases to titles
 print('Getting show aliases...')
-watchlist_items_report = add_aliases_to_titles(watchlist_items_report, client_id, ['it'])
+show_aliases = {}
+for shw in watchlist_items_report:
+    show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)
+watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, ['it'])
 # Print report
 print('Writing output report file...')
 watchlist_items_report = fix_report_layout(watchlist_items_report)
@@ -73,7 +76,10 @@ print('Extracting the viewed items from the watch history...')
 viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
 # Add aliases to titles
 print('Getting show aliases...')
-viewed_items_report = add_aliases_to_titles(viewed_items_report, client_id, ['it'])
+show_aliases = {}
+for shw in viewed_items_report:
+    show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)
+viewed_items_report = add_aliases_to_titles(viewed_items_report, show_aliases, ['it'])
 # Add the progress to TV shows
 print('Getting watch progress for shows...')
 viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)

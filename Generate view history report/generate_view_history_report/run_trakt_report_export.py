@@ -59,7 +59,7 @@ watchlist_items_report = add_aliases_to_titles(watchlist_items_report, client_id
 print('Writing output report file...')
 watchlist_items_report = fix_report_layout(watchlist_items_report)
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, 'Trakt watchlist report', output_workbook)
+    output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, 'Trakt watchlist report', output_workbook, True, True)
 else:
     write_csv_file(watchlist_items_report, 'Trakt watchlist report.csv')
 ## WATCH HISTORY
@@ -85,7 +85,7 @@ viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, c
 print('Writing output report file...')
 viewed_items_report = fix_report_layout(viewed_items_report)
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(viewed_items_report, 'Trakt history report', output_workbook)
+    output_workbook = write_spreadsheet_to_workbook(viewed_items_report, 'Trakt history report', output_workbook, True, True)
 else:
     write_csv_file(viewed_items_report, 'Trakt history report.csv')
 ## OUTPUT

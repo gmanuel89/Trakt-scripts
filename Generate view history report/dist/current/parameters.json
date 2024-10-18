@@ -6,6 +6,7 @@
         "accessToken" : "***"
     },
     "data" : {
+        "titleLanguages": ["it","fr"],
         "redirectDebugMessagesToLogFile" : false,
         "outputFormat" : "xlsx"
     }

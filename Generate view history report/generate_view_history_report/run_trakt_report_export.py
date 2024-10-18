@@ -18,6 +18,10 @@ access_token = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_
 trakt_username = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_USERNAME)
 redirect_debug_messages_to_log_file = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_REDIRECT_TO_LOG_FILE)
 output_format = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_OUTPUT_FORMAT)
+title_languages = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_TITLE_LANGUAGES)
+
+# Fix input
+title_languages = fix_input_language_codes(title_languages)
 
 ##### SCRIPT EXECUTION
 # Initialise log file
@@ -65,7 +69,7 @@ print('Getting show aliases...')
 show_aliases = {}
 for shw in watchlist_items_report:
     show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)
-watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, ['it'])
+watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, title_languages)
 # Print report
 print('Writing output report file...')
 watchlist_items_report = fix_report_layout(watchlist_items_report)
@@ -89,7 +93,7 @@ print('Getting show aliases...')
 show_aliases = {}
 for shw in viewed_items_report:
     show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)
-viewed_items_report = add_aliases_to_titles(viewed_items_report, show_aliases, ['it'])
+viewed_items_report = add_aliases_to_titles(viewed_items_report, show_aliases, title_languages)
 # Add the progress to TV shows
 print('Getting watch progress for shows...')
 viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)

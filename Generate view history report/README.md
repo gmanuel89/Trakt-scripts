@@ -11,6 +11,7 @@ The configuration of the tool can be set by modifying the parameters.json file a
   * **accessToken**: the access token generated the first time this tool is authenticated to Trakt
 * **data**: parameters for the download process:
   * **titleLanguages**: the additional languages (language codes) in which to display the title of the show
+  * **removeDuplicateEntriesFromWatchReport**: if to remove all the duplicate entries from the watch history and merge the watch entries together
   * **redirectDebugMessagesToLogFile**: if to redirect all the console messages to a log file
   * **outputFormat**: the output format of the report file (can be "csv" or "xlsx")
 

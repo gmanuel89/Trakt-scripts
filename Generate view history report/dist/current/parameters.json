@@ -6,7 +6,8 @@
         "accessToken" : "***"
     },
     "data" : {
-        "titleLanguages": ["it","fr"],
+        "titleLanguages" : ["it"],
+        "removeDuplicateEntriesFromWatchReport" : true,
         "redirectDebugMessagesToLogFile" : false,
         "outputFormat" : "xlsx"
     }

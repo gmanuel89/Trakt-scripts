@@ -1,7 +1,7 @@
 #####
 # Author: Manuel Galli
 # e-mail: gmanuel89@gmail.com
-# Updated date: 2024-10-18
+# Updated date: 2024-10-21
 #####
 
 ## Import functions and constants
@@ -21,7 +21,12 @@ def fix_report_layout(report_content: list[dict]) -> list[dict]:
                                       'percentageOfCompletion': OUTPUT_REPORT_COLUMN_PERCENTAGE_OF_COMPLETION,
                                       'showStatus': OUTPUT_REPORT_COLUMN_STATUS,
                                       'alias (it)': OUTPUT_REPORT_COLUMN_TITLE + ' (italian)',
-                                      'listedAt': OUTPUT_REPORT_COLUMN_LISTED_AT
+                                      'listedAt': OUTPUT_REPORT_COLUMN_LISTED_AT,
+                                      'season': OUTPUT_REPORT_COLUMN_SEASON,
+                                      'episodeNumber': OUTPUT_REPORT_COLUMN_EPISODE_NUMBER,
+                                      'episodeTitle': OUTPUT_REPORT_COLUMN_EPISODE_TITLE,
+                                      'episodeWatchedAt': OUTPUT_REPORT_COLUMN_WATCHED_AT,
+                                      'movieWatchedAt': OUTPUT_REPORT_COLUMN_WATCHED_AT
     }
     report_content = rename_csv_headers(report_content, csv_header_renamed_and_ordered)
     # Return

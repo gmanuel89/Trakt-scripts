@@ -19,6 +19,7 @@ trakt_username = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSO
 redirect_debug_messages_to_log_file = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_REDIRECT_TO_LOG_FILE)
 output_format = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_OUTPUT_FORMAT)
 title_languages = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_TITLE_LANGUAGES)
+remove_duplicate_entries_from_watch_list_report = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_REMOVE_DUPLICATE_ENTRIES_FROM_WATCH_REPORT)
 
 # Fix input
 title_languages = fix_input_language_codes(title_languages)
@@ -28,7 +29,7 @@ title_languages = fix_input_language_codes(title_languages)
 if redirect_debug_messages_to_log_file:
     log_file = open("trakt_report_export.log", "w")
     sys.stdout = log_file
-## ACCESS
+### ACCESS
 # Test if the provided token is valid
 access_token_validity = check_trakt_access_token_validity(access_token, client_id, trakt_username)
 if access_token_validity:
@@ -47,11 +48,11 @@ else:
             print('New access token put in the %s file!' %configuration_file_path)
         except:
             traceback.print_exc()
-## OUTPUT
+### OUTPUT
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
     import openpyxl
     output_workbook = openpyxl.Workbook()
-## WATCHLIST
+### WATCHLIST
 # Get user's watchlist
 print('Getting user watchlist...')
 user_watchlist = get_watchlist_for_user(trakt_username, client_id, access_token, None, None)
@@ -77,7 +78,7 @@ if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
     output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME, output_workbook, True, True)
 else:
     write_csv_file(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME + '.csv')
-## WATCH HISTORY
+### WATCH HISTORY
 # Get user's history
 print('Getting user watch history...')
 user_watch_history = get_watch_history_for_user(trakt_username, client_id, access_token, None, None)
@@ -110,10 +111,30 @@ if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
     output_workbook = write_spreadsheet_to_workbook(viewed_items_report, HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
 else:
     write_csv_file(viewed_items_report, HISTORY_REPORT_FILE_NAME + '.csv')
-## OUTPUT
+## EPISODE WATCH HISTORY
+# Extract user's tv show espisode and movie history
+if remove_duplicate_entries_from_watch_list_report:
+    print('Merging duplicates from user watch history...')
+    user_watch_history_deduplicated = remove_duplicate_entries_from_watch_history(user_watch_history)
+else:
+    user_watch_history_deduplicated = user_watch_history
+print('Getting watched episodes and movies from user watch history...')
+viewed_show_episodes_report = extract_viewed_show_episodes_from_watch_history(user_watch_history_deduplicated)
+viewed_movies_report = extract_viewed_movies_from_watch_history(user_watch_history_deduplicated)
+# Print report
+print('Writing output report file...')
+viewed_show_episodes_report = fix_report_layout(viewed_show_episodes_report)
+viewed_movies_report = fix_report_layout(viewed_movies_report)
+if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+    output_workbook = write_spreadsheet_to_workbook(viewed_show_episodes_report, EPISODE_HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
+    output_workbook = write_spreadsheet_to_workbook(viewed_movies_report, MOVIE_HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
+else:
+    write_csv_file(viewed_show_episodes_report, EPISODE_HISTORY_REPORT_FILE_NAME + '.csv')
+    write_csv_file(viewed_movies_report, MOVIE_HISTORY_REPORT_FILE_NAME + '.csv')
+### XLS(X) OUTPUT
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
     write_workbook(output_workbook, None, REPORT_EXCEL_FILE_NAME + '.xlsx', True)
-## LOG FILE
+### LOG FILE
 # Write the log file
 if redirect_debug_messages_to_log_file:
     log_file.close()

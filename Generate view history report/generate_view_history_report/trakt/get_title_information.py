@@ -27,6 +27,7 @@ def get_title_information(title_trakt_id: str, client_id: str, full_info=True) -
         title_info_from_trakt = requests.get('https://api.trakt.tv/shows/' + str(title_trakt_id) + full_info_api_url_suffix, headers=headers_api_call)
         title_information = title_info_from_trakt.json()
     except:
+        print('Error in decoding response: title not found!')
         traceback.print_exc()
     # Return
     return title_information

@@ -60,17 +60,18 @@ user_watchlist = get_watchlist_for_user(trakt_username, client_id, access_token,
 print('Extracting the items from the watchlist...')
 watchlist_items_report = extract_items_from_watchlist(user_watchlist)
 # Get show's detailed information
-"""
 show_title_information = {}
 for shw in watchlist_items_report:
     show_title_information[shw.get('traktId')] = get_title_information(shw.get('traktId'), client_id, True)
-"""
 # Add aliases to titles
 print('Getting aliases...')
 show_aliases = {}
 for shw in watchlist_items_report:
     show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)
 watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, title_languages)
+# Add original title
+print('Getting original titles...')
+watchlist_items_report = add_original_titles_to_titles(watchlist_items_report, show_title_information, show_aliases)
 # Print report
 print('Writing output report file...')
 watchlist_items_report = fix_report_layout(watchlist_items_report)
@@ -104,6 +105,9 @@ viewed_items_report = add_percentage_of_completion_to_tv_shows(viewed_items_repo
 # Add if series is over
 print('Getting status for shows...')
 viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, show_title_information)
+# Add original title
+print('Getting original titles...')
+viewed_items_report = add_original_titles_to_titles(viewed_items_report, show_title_information, show_aliases)
 # Print report
 print('Writing output report file...')
 viewed_items_report = fix_report_layout(viewed_items_report)

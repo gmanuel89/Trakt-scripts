@@ -66,7 +66,7 @@ for shw in watchlist_items_report:
     show_title_information[shw.get('traktId')] = get_title_information(shw.get('traktId'), client_id, True)
 """
 # Add aliases to titles
-print('Getting show aliases...')
+print('Getting aliases...')
 show_aliases = {}
 for shw in watchlist_items_report:
     show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)
@@ -90,7 +90,7 @@ show_title_information = {}
 for shw in viewed_items_report:
     show_title_information[shw.get('traktId')] = get_title_information(shw.get('traktId'), client_id, True)
 # Add aliases to titles
-print('Getting show aliases...')
+print('Getting aliases...')
 show_aliases = {}
 for shw in viewed_items_report:
     show_aliases[shw.get('traktId')] = get_title_aliases(shw.get('traktId'), shw.get('type'), client_id)

@@ -1,0 +1,17 @@
+{
+    "trakt": {
+        "clientId": "***",
+        "clientSecret": "***",
+        "username": "gmanuel89",
+        "accessToken": "***"
+    },
+    "data": {
+        "titleLanguages": [
+            "it",
+            "fr"
+        ],
+        "removeDuplicateEntriesFromWatchReport": true,
+        "redirectDebugMessagesToLogFile": false,
+        "outputFormat": "xlsx"
+    }
+}

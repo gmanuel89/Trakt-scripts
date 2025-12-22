@@ -22,6 +22,7 @@ client_id = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY
 client_secret = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_CLIENT_SECRET)
 access_token = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN)
 trakt_username = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_USERNAME)
+check_ssl_certificate = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_CHECK_SSL_CERTIFICATE)
 redirect_debug_messages_to_log_file = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_REDIRECT_TO_LOG_FILE)
 output_format = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_OUTPUT_FORMAT)
 title_languages = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_TITLE_LANGUAGES)
@@ -45,7 +46,7 @@ trakt_api_client = APIClient(
         'trakt-api-key': str(client_id),
         'Authorization': 'Bearer ' + str(access_token)
     },
-    ssl_certificate_verification=True
+    ssl_certificate_verification=check_ssl_certificate
 )
 ### ACCESS
 # Test if the provided token is valid

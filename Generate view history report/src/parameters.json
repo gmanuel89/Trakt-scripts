@@ -3,7 +3,7 @@
         "clientId": "***",
         "clientSecret": "***",
         "username": "gmanuel89",
-        "accessToken": "***"
+        "checkSSLCertificate": false
     },
     "data": {
         "titleLanguages": [

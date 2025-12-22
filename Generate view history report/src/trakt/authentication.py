@@ -71,8 +71,10 @@ def generate_trakt_device_code(api_client: APIClient, client_id: str) -> dict | 
     # Initialise response
     trakt_device_code_info = None
     try:
+        # Strip headers
+        api_client.session.headers = {'Content-Type': 'application/json'}
         # Perform the call for authentication
-        trakt_authentication_response = api_client.post('/oauth/device/code', data=json.dumps({'client_id': str(client_id)}))
+        trakt_authentication_response = api_client.post('/oauth/device/code', json={'client_id': str(client_id)})
         # Get the content
         trakt_device_code_info = trakt_authentication_response.json()
         device_code = trakt_device_code_info.get('device_code')
@@ -92,6 +94,8 @@ def get_user_auth_confirmation(api_client: APIClient, device_code: str, client_i
     # Initialise response
     trakt_access_token = None
     try:
+        # Strip headers
+        api_client.session.headers = {'Content-Type': 'application/json'}
         # Keep waiting for user response
         print('Waiting for user authorization confirmation...')
         while True:

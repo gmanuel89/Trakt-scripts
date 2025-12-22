@@ -66,6 +66,9 @@ else:
             print('New access token put in the %s file!' %configuration_file_path)
         except:
             traceback.print_exc()
+    else:
+        print('Could not generate a new access token, please check the provided client ID and client secret!')
+        sys.exit(1)
 ### HEADERS
 trakt_api_client.session.headers.update({'Authorization': 'Bearer ' + str(access_token)})
 ### OUTPUT

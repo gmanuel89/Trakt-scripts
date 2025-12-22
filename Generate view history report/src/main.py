@@ -2,6 +2,7 @@
 import json
 import sys
 import traceback
+import pandas
 
 ## Import functions
 from session_manager.APIClient import APIClient
@@ -12,6 +13,7 @@ from report_handling.csv_handling import *
 from report_handling.workbook_handling import *
 from report_handling.report_generation import *
 from report_handling.title_management import *
+from report_handling.dataframe_handling import *
 ## Import constants
 from constants.constants import *
 
@@ -72,96 +74,98 @@ else:
         sys.exit(1)
 ### HEADERS
 trakt_api_client.session.headers.update({'Authorization': 'Bearer ' + str(access_token)})
-### OUTPUT
-if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    import openpyxl
-    output_workbook = openpyxl.Workbook()
 ### WATCHLIST
 # Get user's watchlist
 print('Getting user watchlist...')
 user_watchlist = get_watchlist_for_user(trakt_api_client, trakt_username)
-# Extract the items from the watchlist
-print('Extracting the items from the watchlist...')
-watchlist_items_report = extract_items_from_watchlist(user_watchlist)
-# Get show's detailed information
-show_title_information = {}
-for shw in watchlist_items_report:
-    show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), True)
-# Add aliases to titles
-print('Getting aliases...')
-show_aliases = {}
-for shw in watchlist_items_report:
-    show_aliases[shw.get('traktId')] = get_title_aliases(trakt_api_client, shw.get('traktId'), shw.get('type'))
-watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, title_languages)
-# Add original title
-print('Getting original titles...')
-watchlist_items_report = add_original_titles_to_titles(watchlist_items_report, show_title_information, show_aliases)
-# Print report
-print('Writing output report file...')
-watchlist_items_report = fix_report_layout(watchlist_items_report)
-if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME, output_workbook, True, True)
-else:
-    write_csv_file(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME + '.csv')
+if len(user_watchlist) > 0:
+    # Extract the items from the watchlist
+    print('Extracting the items from the watchlist...')
+    watchlist_items_report = extract_items_from_watchlist(user_watchlist)
+    # Get show's detailed information
+    show_title_information = {}
+    for shw in watchlist_items_report:
+        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), True)
+    # Add aliases to titles
+    print('Getting aliases...')
+    show_aliases = {}
+    for shw in watchlist_items_report:
+        show_aliases[shw.get('traktId')] = get_title_aliases(trakt_api_client, shw.get('traktId'), shw.get('type'))
+    watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, title_languages)
+    # Add original title
+    print('Getting original titles...')
+    watchlist_items_report = add_original_titles_to_titles(watchlist_items_report, show_title_information, show_aliases)
+    # Convert it to DataFrame
+    watchlist_items_report = pandas.DataFrame(watchlist_items_report)
+    # Print report
+    print('Writing output report file...')
+    watchlist_items_report = fix_report_layout(watchlist_items_report)
+    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+        output_workbook = write_spreadsheet_file(watchlist_items_report, REPORT_EXCEL_FILE_NAME + '.xlsx', WATCHLIST_REPORT_FILE_NAME)
+    else:
+        watchlist_items_report.to_csv(WATCHLIST_REPORT_FILE_NAME + '.csv', index=False)
 ### WATCH HISTORY
 # Get user's history
 print('Getting user watch history...')
 user_watch_history = get_watch_history_for_user(trakt_api_client, trakt_username)
-# Extract the viewed items from the history
-print('Extracting the viewed items from the watch history...')
-viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
-# Get show's detailed information
-show_title_information = {}
-for shw in viewed_items_report:
-    show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), True)
-# Add aliases to titles
-print('Getting aliases...')
-show_aliases = {}
-for shw in viewed_items_report:
-    show_aliases[shw.get('traktId')] = get_title_aliases(trakt_api_client, shw.get('traktId'), shw.get('type'))
-viewed_items_report = add_aliases_to_titles(viewed_items_report, show_aliases, title_languages)
-# Add the progress to TV shows
-print('Getting watch progress for shows...')
-viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
-# Add percentage of completion to shows
-print('Getting percentage of completion for shows...')
-viewed_items_report = add_percentage_of_completion_to_tv_shows(viewed_items_report, user_watch_history, client_id)
-# Add if series is over
-print('Getting status for shows...')
-viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, show_title_information)
-# Add original title
-print('Getting original titles...')
-viewed_items_report = add_original_titles_to_titles(viewed_items_report, show_title_information, show_aliases)
-# Print report
-print('Writing output report file...')
-viewed_items_report = fix_report_layout(viewed_items_report)
-if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(viewed_items_report, HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
-else:
-    write_csv_file(viewed_items_report, HISTORY_REPORT_FILE_NAME + '.csv')
+if len(user_watch_history) > 0:
+    # Extract the viewed items from the history
+    print('Extracting the viewed items from the watch history...')
+    viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
+    # Get show's detailed information
+    show_title_information = {}
+    for shw in viewed_items_report:
+        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), True)
+    # Add aliases to titles
+    print('Getting aliases...')
+    show_aliases = {}
+    for shw in viewed_items_report:
+        show_aliases[shw.get('traktId')] = get_title_aliases(trakt_api_client, shw.get('traktId'), shw.get('type'))
+    viewed_items_report = add_aliases_to_titles(viewed_items_report, show_aliases, title_languages)
+    # Add the progress to TV shows
+    print('Getting watch progress for shows...')
+    viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
+    # Add percentage of completion to shows
+    print('Getting percentage of completion for shows...')
+    viewed_items_report = add_percentage_of_completion_to_tv_shows(trakt_api_client, viewed_items_report, user_watch_history, client_id)
+    # Add if series is over
+    print('Getting status for shows...')
+    viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, show_title_information)
+    # Add original title
+    print('Getting original titles...')
+    viewed_items_report = add_original_titles_to_titles(viewed_items_report, show_title_information, show_aliases)
+    # Convert it to DataFrame
+    viewed_items_report = pandas.DataFrame(viewed_items_report)
+    # Print report
+    print('Writing output report file...')
+    viewed_items_report = fix_report_layout(viewed_items_report)
+    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+        output_workbook = write_spreadsheet_file(viewed_items_report, REPORT_EXCEL_FILE_NAME + '.xlsx', HISTORY_REPORT_FILE_NAME)
+    else:
+        viewed_items_report.to_csv(HISTORY_REPORT_FILE_NAME + '.csv', index=False)
 ## EPISODE WATCH HISTORY
-# Extract user's tv show espisode and movie history
-if remove_duplicate_entries_from_watch_list_report:
-    print('Merging duplicates from user watch history...')
-    user_watch_history_deduplicated = remove_duplicate_entries_from_watch_history(user_watch_history)
-else:
-    user_watch_history_deduplicated = user_watch_history
-print('Getting watched episodes and movies from user watch history...')
-viewed_show_episodes_report = extract_viewed_show_episodes_from_watch_history(user_watch_history_deduplicated)
-viewed_movies_report = extract_viewed_movies_from_watch_history(user_watch_history_deduplicated)
-# Print report
-print('Writing output report file...')
-viewed_show_episodes_report = fix_report_layout(viewed_show_episodes_report)
-viewed_movies_report = fix_report_layout(viewed_movies_report)
-if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    output_workbook = write_spreadsheet_to_workbook(viewed_show_episodes_report, EPISODE_HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
-    output_workbook = write_spreadsheet_to_workbook(viewed_movies_report, MOVIE_HISTORY_REPORT_FILE_NAME, output_workbook, True, True)
-else:
-    write_csv_file(viewed_show_episodes_report, EPISODE_HISTORY_REPORT_FILE_NAME + '.csv')
-    write_csv_file(viewed_movies_report, MOVIE_HISTORY_REPORT_FILE_NAME + '.csv')
-### XLS(X) OUTPUT
-if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    write_workbook(output_workbook, None, REPORT_EXCEL_FILE_NAME + '.xlsx', True)
+if len(user_watch_history) > 0:
+    # Extract user's tv show espisode and movie history
+    if remove_duplicate_entries_from_watch_list_report:
+        print('Merging duplicates from user watch history...')
+        user_watch_history_deduplicated = remove_duplicate_entries_from_watch_history(user_watch_history)
+    else:
+        user_watch_history_deduplicated = user_watch_history
+    print('Getting watched episodes and movies from user watch history...')
+    viewed_show_episodes_report = extract_viewed_show_episodes_from_watch_history(user_watch_history_deduplicated)
+    viewed_movies_report = extract_viewed_movies_from_watch_history(user_watch_history_deduplicated)
+    viewed_show_episodes_report = pandas.DataFrame(viewed_show_episodes_report)
+    viewed_movies_report = pandas.DataFrame(viewed_movies_report)
+    # Print report
+    print('Writing output report file...')
+    viewed_show_episodes_report = fix_report_layout(viewed_show_episodes_report)
+    viewed_movies_report = fix_report_layout(viewed_movies_report)
+    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+        output_workbook = write_spreadsheet_file(viewed_show_episodes_report, REPORT_EXCEL_FILE_NAME + '.xlsx', EPISODE_HISTORY_REPORT_FILE_NAME)
+        output_workbook = write_spreadsheet_file(viewed_movies_report, REPORT_EXCEL_FILE_NAME + '.xlsx', MOVIE_HISTORY_REPORT_FILE_NAME)
+    else:
+        viewed_show_episodes_report.to_csv(EPISODE_HISTORY_REPORT_FILE_NAME + '.csv', index=False)
+        viewed_movies_report.to_csv(MOVIE_HISTORY_REPORT_FILE_NAME + '.csv', index=False)
 ### LOG FILE
 # Write the log file
 if redirect_debug_messages_to_log_file:

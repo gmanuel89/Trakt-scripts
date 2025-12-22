@@ -70,7 +70,7 @@ def get_watchlist_for_user(api_client: APIClient, user_id: str, content_type='ep
             watchlist_response = api_client.get(trakt_api_url)
             if watchlist_response.ok:
                 user_watchlist.extend(watchlist_response.json())
-                if int(watchlist_response.headers.get('X-Pagination-Page-Count')) != page_number:
+                if int(watchlist_response.headers.get('X-Pagination-Page-Count')) != 0 and int(watchlist_response.headers.get('X-Pagination-Page-Count')) != page_number:
                     page_number = page_number + 1
                 else:
                     break

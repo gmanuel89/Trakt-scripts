@@ -3,6 +3,7 @@ import json
 import sys
 import traceback
 import pandas
+import urllib3
 
 ## Import functions
 from session_manager.APIClient import APIClient
@@ -75,7 +76,7 @@ else:
     else:
         print('Could not generate a new access token, please check the provided client ID and client secret!')
         sys.exit(1)
-### HEADERS
+### SESSION HEADERS
 trakt_api_client.session.headers.update({'Authorization': 'Bearer ' + str(access_token)})
 ### WATCHLIST
 # Get user's watchlist
@@ -98,15 +99,6 @@ if len(user_watchlist) > 0:
     # Add original title
     print('Getting original titles...')
     watchlist_items_report = add_original_titles_to_titles(watchlist_items_report, show_title_information, show_aliases)
-    # Convert it to DataFrame
-    watchlist_items_report = pandas.DataFrame(watchlist_items_report)
-    # Print report
-    print('Writing output report file...')
-    watchlist_items_report = fix_report_layout(watchlist_items_report)
-    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-        output_workbook = write_spreadsheet_file(watchlist_items_report, REPORT_EXCEL_FILE_NAME + '.xlsx', WATCHLIST_REPORT_FILE_NAME)
-    else:
-        watchlist_items_report.to_csv(WATCHLIST_REPORT_FILE_NAME + '.csv', index=False)
 ### WATCH HISTORY
 # Get user's history
 print('Getting user watch history...')
@@ -137,15 +129,6 @@ if len(user_watch_history) > 0:
     # Add original title
     print('Getting original titles...')
     viewed_items_report = add_original_titles_to_titles(viewed_items_report, show_title_information, show_aliases)
-    # Convert it to DataFrame
-    viewed_items_report = pandas.DataFrame(viewed_items_report)
-    # Print report
-    print('Writing output report file...')
-    viewed_items_report = fix_report_layout(viewed_items_report)
-    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-        output_workbook = write_spreadsheet_file(viewed_items_report, REPORT_EXCEL_FILE_NAME + '.xlsx', HISTORY_REPORT_FILE_NAME)
-    else:
-        viewed_items_report.to_csv(HISTORY_REPORT_FILE_NAME + '.csv', index=False)
 ## EPISODE WATCH HISTORY
 if len(user_watch_history) > 0:
     # Extract user's tv show espisode and movie history
@@ -157,10 +140,33 @@ if len(user_watch_history) > 0:
     print('Getting watched episodes and movies from user watch history...')
     viewed_show_episodes_report = extract_viewed_show_episodes_from_watch_history(user_watch_history_deduplicated)
     viewed_movies_report = extract_viewed_movies_from_watch_history(user_watch_history_deduplicated)
+### SAVE FILES
+if len(user_watchlist) > 0:
+    # Convert it to DataFrame
+    watchlist_items_report = pandas.DataFrame(watchlist_items_report)
+    # Print report
+    print('Writing watchlist report file...')
+    watchlist_items_report = fix_report_layout(watchlist_items_report)
+    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+        output_workbook = write_spreadsheet_file(watchlist_items_report, REPORT_EXCEL_FILE_NAME + '.xlsx', WATCHLIST_REPORT_FILE_NAME)
+    else:
+        watchlist_items_report.to_csv(WATCHLIST_REPORT_FILE_NAME + '.csv', index=False)
+if len(user_watch_history) > 0:
+    # Convert it to DataFrame
+    viewed_items_report = pandas.DataFrame(viewed_items_report)
+    # Print report
+    print('Writing watch history report file...')
+    viewed_items_report = fix_report_layout(viewed_items_report)
+    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+        output_workbook = write_spreadsheet_file(viewed_items_report, REPORT_EXCEL_FILE_NAME + '.xlsx', HISTORY_REPORT_FILE_NAME)
+    else:
+        viewed_items_report.to_csv(HISTORY_REPORT_FILE_NAME + '.csv', index=False)
+if len(user_watch_history) > 0:
+    # Convert to DataFrame
     viewed_show_episodes_report = pandas.DataFrame(viewed_show_episodes_report)
     viewed_movies_report = pandas.DataFrame(viewed_movies_report)
     # Print report
-    print('Writing output report file...')
+    print('Writing viewed items report file...')
     viewed_show_episodes_report = fix_report_layout(viewed_show_episodes_report)
     viewed_movies_report = fix_report_layout(viewed_movies_report)
     if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
@@ -169,6 +175,7 @@ if len(user_watch_history) > 0:
     else:
         viewed_show_episodes_report.to_csv(EPISODE_HISTORY_REPORT_FILE_NAME + '.csv', index=False)
         viewed_movies_report.to_csv(MOVIE_HISTORY_REPORT_FILE_NAME + '.csv', index=False)
+    print('DONE!')
 ### LOG FILE
 # Write the log file
 if redirect_debug_messages_to_log_file:

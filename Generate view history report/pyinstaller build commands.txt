@@ -1,0 +1,2 @@
+# Run this command from the "Generate view history report" directory
+pyinstaller src/main.py --name trakt_report_export --clean --onefile

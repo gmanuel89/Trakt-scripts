@@ -16,6 +16,9 @@ from report_handling.title_management import *
 from report_handling.dataframe_handling import *
 ## Import constants
 from constants.constants import *
+## Suppress warning messages
+from urllib3.exceptions import InsecureRequestWarning
+urllib3.disable_warnings(InsecureRequestWarning)
 
 # Read configuration file
 configuration_file_path = CONFIGURATION_FILE_PATH

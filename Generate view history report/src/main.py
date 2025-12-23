@@ -77,7 +77,7 @@ trakt_api_client.session.headers.update({'Authorization': 'Bearer ' + str(access
 ### WATCHLIST
 # Get user's watchlist
 print('Getting user watchlist...')
-user_watchlist = get_watchlist_for_user(trakt_api_client, trakt_username)
+user_watchlist = get_watchlist_for_user(trakt_api_client, trakt_username, None)
 if len(user_watchlist) > 0:
     # Extract the items from the watchlist
     print('Extracting the items from the watchlist...')
@@ -107,7 +107,7 @@ if len(user_watchlist) > 0:
 ### WATCH HISTORY
 # Get user's history
 print('Getting user watch history...')
-user_watch_history = get_watch_history_for_user(trakt_api_client, trakt_username)
+user_watch_history = get_watch_history_for_user(trakt_api_client, trakt_username, None)
 if len(user_watch_history) > 0:
     # Extract the viewed items from the history
     print('Extracting the viewed items from the watch history...')

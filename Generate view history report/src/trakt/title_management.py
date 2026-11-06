@@ -20,6 +20,7 @@ def get_title_aliases(api_client: APIClient, title_trakt_id: str, title_type: st
         title_alias_info_from_trakt = api_client.get(f'{title_type_string}/{title_trakt_id}/aliases')
         title_alias_info = title_alias_info_from_trakt.json()
     except:
+        app_logger.warning(f'Error in decoding response: title {title_trakt_id} not found!')
         app_logger.debug(traceback.format_exc())
     # Return
     return title_alias_info
@@ -38,7 +39,7 @@ def get_title_information(api_client: APIClient, title_trakt_id: str, full_info=
         title_info_from_trakt = api_client.get(f'shows/{title_trakt_id}{full_info_api_url_suffix}')
         title_information = title_info_from_trakt.json()
     except:
-        app_logger.warning('Error in decoding response: title not found!')
+        app_logger.warning(f'Error in decoding response: title {title_trakt_id} not found!')
         app_logger.debug(traceback.format_exc())
     # Return
     return title_information
@@ -58,6 +59,7 @@ def get_title_seasons(api_client: APIClient, title_trakt_id: str, include_episod
         title_info_from_trakt = api_client.get(f'/shows/{title_trakt_id}/seasons{api_url_string}')
         title_seasons = title_info_from_trakt.json()
     except:
+        app_logger.warning(f'Error in decoding response: title {title_trakt_id} not found!')
         app_logger.debug(traceback.format_exc())
     # Return
     return title_seasons

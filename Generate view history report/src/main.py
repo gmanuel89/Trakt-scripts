@@ -180,3 +180,5 @@ if len(user_watch_history) > 0:
         viewed_show_episodes_report.to_csv(EPISODE_HISTORY_REPORT_FILE_NAME + '.csv', index=False)
         viewed_movies_report.to_csv(MOVIE_HISTORY_REPORT_FILE_NAME + '.csv', index=False)
     app_logger.info('DONE!')
+
+sys.exit(0)

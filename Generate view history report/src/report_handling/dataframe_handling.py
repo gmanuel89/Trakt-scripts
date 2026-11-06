@@ -81,7 +81,7 @@ def write_spreadsheet_file(csv_file_content: pandas.DataFrame, output_file_name:
         if not os.path.exists(output_file_name):
             csv_file_content.to_excel(output_file_name, sheet_name=sheet_name, index=False)
         else:
-            with pandas.ExcelWriter(output_file_name, mode='a', engine='openpyxl') as excel_writer:
+            with pandas.ExcelWriter(output_file_name, mode='a', engine='openpyxl', if_sheet_exists='new') as excel_writer:
                 csv_file_content.to_excel(excel_writer, sheet_name=sheet_name, index=False)
     # return
     return None

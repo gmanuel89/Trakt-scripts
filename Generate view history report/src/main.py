@@ -64,7 +64,7 @@ else:
     # Generate a new Access Token
     trakt_device_code = generate_trakt_device_code(trakt_api_client, client_id)
     if trakt_device_code is not None:
-        access_token = get_user_auth_confirmation(trakt_api_client, trakt_device_code.get('device_code'), client_id, client_secret)
+        access_token = get_user_auth_confirmation(trakt_api_client, trakt_device_code.get('device_code'), client_id)
         try:
             print('Attempting to automatically put the access token in the %s file...' %configuration_file_path)
             configuration[PARAMETERS_JSON_KEY_TRAKT][PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN] = access_token

@@ -105,7 +105,7 @@ def generate_trakt_device_code(api_client: APIClient, client_id: str) -> dict | 
         # Get the content
         trakt_device_code_info = trakt_authentication_response.json()
         device_code = trakt_device_code_info.get('device_code')
-        app_logger.info('Device code: %s' %device_code)
+        app_logger.info(f'Device code: {device_code}')
         verification_url = trakt_device_code_info.get('verification_url')
         verification_code = trakt_device_code_info.get('user_code')
         # Display message to the user

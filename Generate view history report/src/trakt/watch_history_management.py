@@ -118,7 +118,7 @@ def checkin_to_trakt(api_client: APIClient, show_title: str, show_year: int, sho
     # API call
     try:
         check_in_response = api_client.post('checkin', data=json.dumps(payload_for_post_request))
-        app_logger.debug('Payload:\n%s' %payload_for_post_request)
+        app_logger.debug(f'Payload:\n{payload_for_post_request}')
     except:
         app_logger.debug(traceback.format_exc())
     # Return

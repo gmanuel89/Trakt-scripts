@@ -26,17 +26,21 @@ def get_title_aliases(api_client: APIClient, title_trakt_id: str, title_type: st
     return title_alias_info
 
 ## Get title information
-def get_title_information(api_client: APIClient, title_trakt_id: str, full_info=True) -> dict:
+def get_title_information(api_client: APIClient, title_trakt_id: str, title_type: str, full_info=True) -> dict:
     """Get title information"""
     # Initialise output
     title_information = {}
     # Get info from Trakt
     try:
+        if title_type == 'show' or title_type == 'episode':
+            title_type_string = 'shows'
+        else:
+            title_type_string = 'movies'
         if full_info:
             full_info_api_url_suffix = '?extended=full'
         else:
             full_info_api_url_suffix = ''
-        title_info_from_trakt = api_client.get(f'shows/{title_trakt_id}{full_info_api_url_suffix}')
+        title_info_from_trakt = api_client.get(f'{title_type_string}/{title_trakt_id}{full_info_api_url_suffix}')
         title_information = title_info_from_trakt.json()
     except:
         app_logger.warning(f'Error in decoding response: title {title_trakt_id} not found!')

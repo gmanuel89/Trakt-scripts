@@ -89,7 +89,7 @@ if len(user_watchlist) > 0:
     app_logger.info('Getting detailed information for titles...')
     show_title_information = {}
     for shw in watchlist_items_report:
-        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), True)
+        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), shw.get('type'), True)
     # Add aliases to titles
     app_logger.info('Getting aliases...')
     show_aliases = {}
@@ -112,7 +112,7 @@ if len(user_watch_history) > 0:
     app_logger.info('Getting detailed information for titles...')
     show_title_information = {}
     for shw in viewed_items_report:
-        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), True)
+        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), shw.get('type'), True)
     # Add aliases to titles
     app_logger.info('Getting aliases...')
     show_aliases = {}

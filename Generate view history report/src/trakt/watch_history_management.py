@@ -2,7 +2,11 @@
 import requests
 import traceback
 import json
+import logging
 from session_manager.APIClient import APIClient
+
+## Initialise logger
+app_logger = logging.getLogger(__name__)
 
 ## Get the history of the user (Access Token required only if the user is private)
 def get_watch_history_for_user(api_client: APIClient, user_id: str, content_type='episodes', time_interval=None) -> list[dict]:
@@ -35,7 +39,7 @@ def get_watch_history_for_user(api_client: APIClient, user_id: str, content_type
             else:
                 break
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     # Return
     return user_watch_history
 
@@ -77,7 +81,7 @@ def get_watchlist_for_user(api_client: APIClient, user_id: str, content_type='ep
             else:
                 break
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     # Return
     return user_watchlist
 
@@ -114,8 +118,8 @@ def checkin_to_trakt(api_client: APIClient, show_title: str, show_year: int, sho
     # API call
     try:
         check_in_response = api_client.post('checkin', data=json.dumps(payload_for_post_request))
-        print('Payload:\n%s' %payload_for_post_request)
+        app_logger.debug('Payload:\n%s' %payload_for_post_request)
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     # Return
     return check_in_response

@@ -3,6 +3,10 @@ import openpyxl
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
+import logging
+
+## Initialise logger
+app_logger = logging.getLogger(__name__)
 
 ## Apply styling to spreadsheet
 def apply_styling_to_spreadsheet(spreadsheet_sheet: Worksheet, freeze_header=True, freeze_first_column=False) -> Worksheet:
@@ -73,7 +77,7 @@ def write_spreadsheet_to_workbook(workbook_content: list[dict], sheet_name: str,
     # Apply styling to worksheet
     spreadsheet_sheet = apply_styling_to_spreadsheet(spreadsheet_sheet, freeze_header, freeze_first_column)
     # Print console message
-    print('Writing spreadsheet: ' + str(sheet_name))
+    app_logger.info('Writing spreadsheet: ' + str(sheet_name))
     # Return the same Workbook as input but with the added sheet
     return spreadsheet_workbook
 

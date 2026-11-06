@@ -5,8 +5,11 @@ import time
 import hashlib
 import base64
 import os
-import re
+import logging
 from session_manager.APIClient import APIClient
+
+## Initialise logger
+app_logger = logging.getLogger(__name__)
 
 ## Authentication to Trakt
 def authenticate_to_trakt(api_client: APIClient, client_id: str, redirect_uri=None) -> dict | None:
@@ -20,8 +23,8 @@ def authenticate_to_trakt(api_client: APIClient, client_id: str, redirect_uri=No
         # --- PKCE: Generate verifier and challenge ---
         code_verifier, code_challenge = generate_pkce_pair()
         # Guidance to user
-        print('Authenticating to Trakt...')
-        print('Open the link in a browser and paste the PIN')
+        app_logger.info('Authenticating to Trakt...')
+        app_logger.info('Open the link in a browser and paste the PIN')
         auth_url = (
             f'https://trakt.tv/oauth/authorize'
             f'?response_type=code'
@@ -30,8 +33,7 @@ def authenticate_to_trakt(api_client: APIClient, client_id: str, redirect_uri=No
             f'&code_challenge={code_challenge}'
             f'&code_challenge_method=S256'
         )
-        print(auth_url)
-        print('')
+        app_logger.info(auth_url)
         # Input the PIN
         auth_pin = str(input('PIN: '))
         # Authenticate to Trakt
@@ -61,7 +63,7 @@ def authenticate_to_trakt(api_client: APIClient, client_id: str, redirect_uri=No
         # Build the final headers
         headers_for_api_calls = auth_headers | request_headers
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     # Return
     return headers_for_api_calls
 
@@ -77,7 +79,7 @@ def check_trakt_access_token_validity(api_client: APIClient, trakt_username: str
         if trakt_response.ok:
             token_is_valid = True
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     return token_is_valid
 
 ##
@@ -103,13 +105,13 @@ def generate_trakt_device_code(api_client: APIClient, client_id: str) -> dict | 
         # Get the content
         trakt_device_code_info = trakt_authentication_response.json()
         device_code = trakt_device_code_info.get('device_code')
-        print('Device code: %s' %device_code)
+        app_logger.info('Device code: %s' %device_code)
         verification_url = trakt_device_code_info.get('verification_url')
         verification_code = trakt_device_code_info.get('user_code')
         # Display message to the user
-        print(f'Go to the webpage {verification_url} and enter the verification code: {verification_code}')
+        app_logger.info(f'Go to the webpage {verification_url} and enter the verification code: {verification_code}')
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     # Return
     return trakt_device_code_info
 
@@ -122,7 +124,7 @@ def get_user_auth_confirmation(api_client: APIClient, device_code: str, client_i
         # Strip headers
         api_client.session.headers = {'Content-Type': 'application/json'}
         # Keep waiting for user response
-        print('Waiting for user authorization confirmation...')
+        app_logger.info('Waiting for user authorization confirmation...')
         while True:
             # Payload for POST call
             payload_for_post_call = {
@@ -134,31 +136,31 @@ def get_user_auth_confirmation(api_client: APIClient, device_code: str, client_i
             # Handle cases based on the response
             if trakt_authentication_response.ok:
                 trakt_access_token = trakt_authentication_response.json().get('access_token')
-                print(f'Access granted!\nToken: {trakt_access_token}')
-                print('The token is valid for 24 hours, write it down and use it for future authentication')
-                print('by placing it in the "accessToken" field in the parameters.json file')
+                app_logger.info(f'Access granted!\nToken: {trakt_access_token}')
+                app_logger.info('The token is valid for 24 hours, write it down and use it for future authentication')
+                app_logger.info('by placing it in the "accessToken" field in the parameters.json file')
                 break
             else:
                 if trakt_authentication_response.status_code == 400:
-                    print(f'Authorization still pending... Waiting for {seconds_to_wait_between_calls} seconds...')
+                    app_logger.warning(f'Authorization still pending... Waiting for {seconds_to_wait_between_calls} seconds...')
                     time.sleep(seconds_to_wait_between_calls)
                     continue
                 elif trakt_authentication_response.status_code == 404:
-                    print('Invalid device code! Repeat the whole authentication process!')
+                    app_logger.error('Invalid device code! Repeat the whole authentication process!')
                     break
                 elif trakt_authentication_response.status_code == 409:
-                    print('The device code has been already approved')
+                    app_logger.warning('The device code has been already approved')
                     break
                 elif trakt_authentication_response.status_code == 410:
-                    print('Device code expired! Repeat the whole authentication process!')
+                    app_logger.error('Device code expired! Repeat the whole authentication process!')
                     break
                 elif trakt_authentication_response.status_code == 418:
-                    print('Device code refused! Repeat the whole authentication process!')
+                    app_logger.error('Device code refused! Repeat the whole authentication process!')
                     break
                 elif trakt_authentication_response.status_code == 429:
-                    print(f'Too many API calls... Waiting for {seconds_to_wait_between_calls * 2} seconds...')
+                    app_logger.warning(f'Too many API calls... Waiting for {seconds_to_wait_between_calls * 2} seconds...')
                     time.sleep(seconds_to_wait_between_calls * 2)      
     except:
-        traceback.print_exc()
+        app_logger.debug(traceback.format_exc())
     # Return
     return trakt_access_token

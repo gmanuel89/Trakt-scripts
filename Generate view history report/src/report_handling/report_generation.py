@@ -1,9 +1,13 @@
 ## Import libraries
 from constants.constants import *
 import traceback
+import logging
 import pandas
 from trakt.title_management import *
 from report_handling.csv_handling import *
+
+## Initialise logger
+app_logger = logging.getLogger(__name__)
 
 ## Add the aliases to shows (use language codes) (in the extracted report)
 def add_aliases_to_titles(viewed_items_report: list[dict], show_aliases: dict, languages=['it']) -> list[dict]:
@@ -21,7 +25,7 @@ def add_aliases_to_titles(viewed_items_report: list[dict], show_aliases: dict, l
                     if str(lang).lower() == str(als.get('country')).lower():
                         vwd[alias_dictionary_key] = als.get('title')
         except:
-            traceback.print_exc()
+            app_logger.debug(traceback.format_exc())
     # Return
     return viewed_items_report
 
@@ -43,7 +47,7 @@ def add_original_titles_to_titles(viewed_items_report: list[dict], show_title_in
                     # Store it in the output
                     vwd['originalTitle'] = als.get('title')
         except:
-            traceback.print_exc()
+            app_logger.debug(traceback.format_exc())
     # Return
     return viewed_items_report
 
@@ -90,7 +94,7 @@ def add_percentage_of_completion_to_tv_shows(api_client: APIClient, viewed_items
                 vwd['watchedEpisodes'] = str(number_of_watched_episodes) + '  of  ' + str(total_number_of_episodes)
                 vwd['percentageOfCompletion'] = round(number_of_watched_episodes / total_number_of_episodes * 100, 1)
         except:
-            traceback.print_exc()
+            app_logger.debug(traceback.format_exc())
     # Return
     return viewed_items_report
 
@@ -119,7 +123,7 @@ def add_progress_to_tv_shows(viewed_items_report: list[dict], user_watch_history
                         latestSeason = epsd.get('episode').get('season')
                         latestEpisode = epsd.get('episode').get('number')
         except:
-            traceback.print_exc()
+            app_logger.debug(traceback.format_exc())
     # Return
     return viewed_items_report
 
@@ -140,7 +144,7 @@ def add_series_is_over_flag_to_tv_shows(viewed_items_report: list[dict], show_ti
                 # Store it in the output
                 vwd['showStatus'] = series_status
         except:
-            traceback.print_exc()
+            app_logger.debug(traceback.format_exc())
     # Return
     return viewed_items_report
 

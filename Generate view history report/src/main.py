@@ -64,11 +64,11 @@ else:
     if trakt_device_code is not None:
         access_token = get_user_auth_confirmation(trakt_api_client, trakt_device_code.get('device_code'), client_id)
         try:
-            app_logger.info('Attempting to automatically put the access token in the %s file...' %configuration_file_path)
+            app_logger.info(f'Attempting to automatically put the access token in the {configuration_file_path} file...')
             configuration[PARAMETERS_JSON_KEY_TRAKT][PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN] = access_token
             with open(configuration_file_path, 'w') as param_file:
                 json.dump(configuration, param_file, indent=4)
-            app_logger.info('New access token put in the %s file!' %configuration_file_path)
+            app_logger.info(f'New access token put in the {configuration_file_path} file!')
         except:
             app_logger.debug(traceback.format_exc())
     else:

@@ -1,7 +1,6 @@
 {
     "trakt": {
         "clientId": "***",
-        "clientSecret": "***",
         "username": "gmanuel89",
         "checkSSLCertificate": false
     },

@@ -48,10 +48,11 @@ trakt_api_client = APIClient(
         'Content-Type': 'application/json',
         'trakt-api-version': '2',
         'trakt-api-key': str(client_id),
-        'Authorization': 'Bearer ' + str(access_token)
+        'Authorization': f'Bearer {access_token}'
     },
     ssl_certificate_verification=check_ssl_certificate
 )
+
 ### ACCESS
 # Test if the provided token is valid
 access_token_validity = check_trakt_access_token_validity(trakt_api_client, trakt_username)
@@ -63,6 +64,7 @@ else:
     trakt_device_code = generate_trakt_device_code(trakt_api_client, client_id)
     if trakt_device_code is not None:
         access_token = get_user_auth_confirmation(trakt_api_client, trakt_device_code.get('device_code'), client_id)
+        trakt_api_client.session.headers.update({'Authorization': f'Bearer {access_token}'})
         try:
             app_logger.info(f'Attempting to automatically put the access token in the {configuration_file_path} file...')
             configuration[PARAMETERS_JSON_KEY_TRAKT][PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN] = access_token
@@ -74,8 +76,7 @@ else:
     else:
         app_logger.error('Could not generate a new access token, please check the provided client ID and client secret!')
         sys.exit(1)
-### SESSION HEADERS
-trakt_api_client.session.headers.update({'Authorization': 'Bearer ' + str(access_token)})
+
 ### WATCHLIST
 # Get user's watchlist
 app_logger.info('Getting user watchlist...')

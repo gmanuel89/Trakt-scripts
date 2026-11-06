@@ -1,5 +1,5 @@
 ## Import libraries
-from langcodes import *
+import langcodes
 
 ## Extract viewed items from watchlist (in a more organised form)
 def extract_items_from_watchlist(user_watchlist: list[dict]) -> list[dict]:
@@ -153,13 +153,14 @@ def fix_input_language_codes(language_codes: str | list[str]) -> list[str]:
     if language_codes is None or language_codes == '' or len(language_codes) == 0:
         return ['it']
     # Fix input type
-    if isinstance(language_codes, str): title_languages = [title_languages]
+    if isinstance(language_codes, str):
+        title_languages = [title_languages]
     # Initialise output
     fixed_language_codes = []
     # For each line
     for lc in language_codes:
         # Get the mapping for the language
-        if Language.get(lc).is_valid():
+        if langcodes.Language.get(lc).is_valid():
             fixed_language_codes.append(lc)
     # Return
     return fixed_language_codes

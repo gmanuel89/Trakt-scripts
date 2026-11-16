@@ -31,7 +31,6 @@ app_logger = logging.getLogger(__name__)
 configuration_file_path = CONFIGURATION_FILE_PATH
 configuration = json.loads(open(configuration_file_path).read())
 client_id = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_CLIENT_ID)
-access_token = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN)
 trakt_username = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_USERNAME)
 check_ssl_certificate = configuration.get(PARAMETERS_JSON_KEY_TRAKT).get(PARAMETERS_JSON_KEY_TRAKT_CHECK_SSL_CERTIFICATE)
 output_format = configuration.get(PARAMETERS_JSON_KEY_DATA).get(PARAMETERS_JSON_KEY_DATA_OUTPUT_FORMAT)
@@ -48,35 +47,23 @@ trakt_api_client = APIClient(
     headers={
         'Content-Type': 'application/json',
         'trakt-api-version': '2',
-        'trakt-api-key': str(client_id),
-        'Authorization': f'Bearer {access_token}'
+        'trakt-api-key': str(client_id)
     },
     ssl_certificate_verification=check_ssl_certificate
 )
 
 ### ACCESS
-# Test if the provided token is valid
-access_token_validity = check_trakt_access_token_validity(trakt_api_client, trakt_username)
-if access_token_validity:
-    app_logger.info('The provided access token is valid!')
+# Authentication
+app_logger.info('Authenticating to Trakt...')
+# Generate a new Access Token
+trakt_device_code = generate_trakt_device_code(trakt_api_client, client_id)
+if trakt_device_code is not None:
+    access_token = get_user_auth_confirmation(trakt_api_client, trakt_device_code.get('device_code'), client_id)
+    # Update API client headers with Bearer Token
+    trakt_api_client.session.headers.update({'Authorization': f'Bearer {access_token}'})
 else:
-    app_logger.warning('The provided access token is not valid, generating a new one...')
-    # Generate a new Access Token
-    trakt_device_code = generate_trakt_device_code(trakt_api_client, client_id)
-    if trakt_device_code is not None:
-        access_token = get_user_auth_confirmation(trakt_api_client, trakt_device_code.get('device_code'), client_id)
-        trakt_api_client.session.headers.update({'Authorization': f'Bearer {access_token}'})
-        try:
-            app_logger.info(f'Attempting to automatically put the access token in the {configuration_file_path} file...')
-            configuration[PARAMETERS_JSON_KEY_TRAKT][PARAMETERS_JSON_KEY_TRAKT_ACCESS_TOKEN] = access_token
-            with open(configuration_file_path, 'w') as param_file:
-                json.dump(configuration, param_file, indent=4)
-            app_logger.info(f'New access token put in the {configuration_file_path} file!')
-        except:
-            app_logger.debug(traceback.format_exc())
-    else:
-        app_logger.error('Could not generate a new access token, please check the provided client ID and client secret!')
-        sys.exit(1)
+    app_logger.error('Could not generate a new access token, please check the provided client ID and client secret!')
+    sys.exit(1)
 
 ### WATCHLIST
 # Get user's watchlist

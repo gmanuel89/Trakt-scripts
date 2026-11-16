@@ -82,7 +82,7 @@ def check_trakt_access_token_validity(api_client: APIClient, trakt_username: str
         app_logger.debug(traceback.format_exc())
     return token_is_valid
 
-##
+## Generate a PKCE code_verifier and code_challenge pair
 def generate_pkce_pair() -> tuple[str, str]:
     """Generate a PKCE code_verifier and code_challenge pair."""
     # code_verifier: 43-128 chars, URL-safe random string
@@ -98,8 +98,6 @@ def generate_trakt_device_code(api_client: APIClient, client_id: str) -> dict | 
     # Initialise response
     trakt_device_code_info = None
     try:
-        # Strip headers
-        api_client.session.headers = {'Content-Type': 'application/json'}
         # Perform the call for authentication
         trakt_authentication_response = api_client.post('/oauth/device/code', json={'client_id': str(client_id)})
         # Get the content
@@ -121,8 +119,6 @@ def get_user_auth_confirmation(api_client: APIClient, device_code: str, client_i
     # Initialise response
     trakt_access_token = None
     try:
-        # Strip headers
-        api_client.session.headers = {'Content-Type': 'application/json'}
         # Keep waiting for user response
         app_logger.info('Waiting for user authorization confirmation...')
         while True:
@@ -136,9 +132,8 @@ def get_user_auth_confirmation(api_client: APIClient, device_code: str, client_i
             # Handle cases based on the response
             if trakt_authentication_response.ok:
                 trakt_access_token = trakt_authentication_response.json().get('access_token')
-                app_logger.info(f'Access granted!\nToken: {trakt_access_token}')
-                app_logger.info('The token is valid for 24 hours, write it down and use it for future authentication')
-                app_logger.info('by placing it in the "accessToken" field in the parameters.json file')
+                app_logger.info(f'Access granted!')
+                #app_logger.info(f'Access granted!\nToken: {trakt_access_token}')
                 break
             else:
                 if trakt_authentication_response.status_code == 400:

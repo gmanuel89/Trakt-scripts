@@ -1,21 +1,15 @@
 ## Import libraries
 import json
 import sys
-import traceback
-import pandas
 import urllib3
 from datetime import datetime
 
 ## Import functions
 from session_manager.APIClient import APIClient
 from trakt.authentication import *
-from trakt.title_management import *
 from trakt.watch_history_management import *
-from report_handling.csv_handling import *
-from report_handling.workbook_handling import *
+from report_handling.helpers import *
 from report_handling.report_generation import *
-from report_handling.title_management import *
-from report_handling.dataframe_handling import *
 from log_handling.log_handling import *
 ## Import constants
 from constants.constants import *
@@ -69,105 +63,31 @@ else:
 # Get user's watchlist
 app_logger.info('Getting user watchlist...')
 user_watchlist = get_watchlist_for_user(trakt_api_client, trakt_username, None)
-if len(user_watchlist) > 0:
-    # Extract the items from the watchlist
-    app_logger.info('Extracting the items from the watchlist...')
-    watchlist_items_report = extract_items_from_watchlist(user_watchlist)
-    # Get show's detailed information
-    app_logger.info('Getting detailed information for titles...')
-    show_title_information = {}
-    for shw in watchlist_items_report:
-        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), shw.get('type'), True)
-    # Add aliases to titles
-    app_logger.info('Getting aliases...')
-    show_aliases = {}
-    for shw in watchlist_items_report:
-        show_aliases[shw.get('traktId')] = get_title_aliases(trakt_api_client, shw.get('traktId'), shw.get('type'))
-    watchlist_items_report = add_aliases_to_titles(watchlist_items_report, show_aliases, title_languages)
-    # Add original title
-    app_logger.info('Getting original titles...')
-    watchlist_items_report = add_original_titles_to_titles(watchlist_items_report, show_title_information, show_aliases)
+watchlist_items_report = generate_watchlist_report(user_watchlist, title_languages, trakt_api_client)
 
 ### WATCH HISTORY
 # Get user's history
 app_logger.info('Getting user watch history...')
 user_watch_history = get_watch_history_for_user(trakt_api_client, trakt_username, None)
-if len(user_watch_history) > 0:
-    # Extract the viewed items from the history
-    app_logger.info('Extracting the viewed items from the watch history...')
-    viewed_items_report = extract_viewed_items_from_watch_history(user_watch_history)
-    # Get show's detailed information
-    app_logger.info('Getting detailed information for titles...')
-    show_title_information = {}
-    for shw in viewed_items_report:
-        show_title_information[shw.get('traktId')] = get_title_information(trakt_api_client, shw.get('traktId'), shw.get('type'), True)
-    # Add aliases to titles
-    app_logger.info('Getting aliases...')
-    show_aliases = {}
-    for shw in viewed_items_report:
-        show_aliases[shw.get('traktId')] = get_title_aliases(trakt_api_client, shw.get('traktId'), shw.get('type'))
-    viewed_items_report = add_aliases_to_titles(viewed_items_report, show_aliases, title_languages)
-    # Add the progress to TV shows
-    app_logger.info('Getting watch progress for shows...')
-    viewed_items_report = add_progress_to_tv_shows(viewed_items_report, user_watch_history)
-    # Add percentage of completion to shows
-    app_logger.info('Getting percentage of completion for shows...')
-    viewed_items_report = add_percentage_of_completion_to_tv_shows(trakt_api_client, viewed_items_report, user_watch_history, client_id)
-    # Add if series is over
-    app_logger.info('Getting status for shows...')
-    viewed_items_report = add_series_is_over_flag_to_tv_shows(viewed_items_report, show_title_information)
-    # Add original title
-    app_logger.info('Getting original titles...')
-    viewed_items_report = add_original_titles_to_titles(viewed_items_report, show_title_information, show_aliases)
+viewed_items_report = generate_watch_history_report(user_watch_history, title_languages, client_id, trakt_api_client)
 
 ## EPISODE WATCH HISTORY
-if len(user_watch_history) > 0:
-    # Extract user's tv show espisode and movie history
-    if remove_duplicate_entries_from_watch_list_report:
-        app_logger.info('Merging duplicates from user watch history...')
-        user_watch_history_deduplicated = remove_duplicate_entries_from_watch_history(user_watch_history)
-    else:
-        user_watch_history_deduplicated = user_watch_history
-    app_logger.info('Getting watched episodes and movies from user watch history...')
-    viewed_show_episodes_report = extract_viewed_show_episodes_from_watch_history(user_watch_history_deduplicated)
-    viewed_movies_report = extract_viewed_movies_from_watch_history(user_watch_history_deduplicated)
+viewed_show_episodes_report, viewed_movies_report = generate_viewed_items_report(user_watch_history, remove_duplicate_entries_from_watch_list_report)
 
 ### SAVE FILES
 date_file_suffix = datetime.now().strftime("%Y%m%d")
-if len(user_watchlist) > 0:
-    # Convert it to DataFrame
-    watchlist_items_report = pandas.DataFrame(watchlist_items_report)
-    # Print report
-    app_logger.info('Writing watchlist report file...')
-    watchlist_items_report = fix_report_layout(watchlist_items_report)
-    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-        output_workbook = write_spreadsheet_file(watchlist_items_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', WATCHLIST_REPORT_FILE_NAME)
-    else:
-        watchlist_items_report.to_csv(f'{WATCHLIST_REPORT_FILE_NAME} {date_file_suffix}.csv', index=False)
-if len(user_watch_history) > 0:
-    # Convert it to DataFrame
-    viewed_items_report = pandas.DataFrame(viewed_items_report)
-    # Print report
-    app_logger.info('Writing watch history report file...')
-    viewed_items_report = fix_report_layout(viewed_items_report)
-    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-        output_workbook = write_spreadsheet_file(viewed_items_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', HISTORY_REPORT_FILE_NAME)
-    else:
-        viewed_items_report.to_csv(f'{HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv', index=False)
-if len(user_watch_history) > 0:
-    # Convert to DataFrame
-    viewed_show_episodes_report = pandas.DataFrame(viewed_show_episodes_report)
-    viewed_movies_report = pandas.DataFrame(viewed_movies_report)
-    # Print report
-    app_logger.info('Writing viewed items report file...')
-    viewed_show_episodes_report = fix_report_layout(viewed_show_episodes_report)
-    viewed_movies_report = fix_report_layout(viewed_movies_report)
-    if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-        output_workbook = write_spreadsheet_file(viewed_show_episodes_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', EPISODE_HISTORY_REPORT_FILE_NAME)
-        output_workbook = write_spreadsheet_file(viewed_movies_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', MOVIE_HISTORY_REPORT_FILE_NAME)
-    else:
-        viewed_show_episodes_report.to_csv(f'{EPISODE_HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv', index=False)
-        viewed_movies_report.to_csv(f'{MOVIE_HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv', index=False)
-    app_logger.info('DONE!')
+app_logger.info('Writing watchlist report file...')
+if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
+    save_report_to_excel_file(watchlist_items_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', WATCHLIST_REPORT_FILE_NAME)
+    save_report_to_excel_file(viewed_items_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', HISTORY_REPORT_FILE_NAME)
+    save_report_to_excel_file(viewed_show_episodes_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', EPISODE_HISTORY_REPORT_FILE_NAME)
+    save_report_to_excel_file(viewed_movies_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', MOVIE_HISTORY_REPORT_FILE_NAME)
+else:
+    save_report_to_csv_file(watchlist_items_report, f'{WATCHLIST_REPORT_FILE_NAME} {date_file_suffix}.csv')
+    save_report_to_csv_file(viewed_items_report, f'{HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv')
+    save_report_to_csv_file(viewed_show_episodes_report, f'{EPISODE_HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv')
+    save_report_to_csv_file(viewed_movies_report, f'{MOVIE_HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv')
+
+app_logger.info('DONE!')
 
 sys.exit(0)

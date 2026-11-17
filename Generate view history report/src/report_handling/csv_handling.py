@@ -25,7 +25,7 @@ def write_csv_file(csv_file_content: list[dict], output_file_name: str, custom_c
     # Initialise output
     file_written = False
     # Check output file name
-    if output_file_name == '' : output_file_name = 'CSV file'
+    if not output_file_name: output_file_name = 'CSV file'
     if not output_file_name.endswith('.csv') : output_file_name = output_file_name + '.csv'
     # Get header (harmonised)
     csv_header = list(csv_file_content[0].keys())

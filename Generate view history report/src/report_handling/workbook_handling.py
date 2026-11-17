@@ -4,6 +4,7 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 import logging
+import traceback
 
 ## Initialise logger
 app_logger = logging.getLogger(__name__)
@@ -82,17 +83,26 @@ def write_spreadsheet_to_workbook(workbook_content: list[dict], sheet_name: str,
     return spreadsheet_workbook
 
 ## Write spreadsheet to file
-def write_workbook(spreadsheet_workbook: openpyxl.Workbook, output_folder='', file_name='', remove_default_empty_sheet=True) -> None:
+def write_workbook(spreadsheet_workbook: openpyxl.Workbook, output_file_name: str, remove_default_empty_sheet=True) -> bool:
+    # Exit if there is no content
+    if not(spreadsheet_workbook) == 0: return False
+    # Initialise output
+    file_written = False
     # Remove the default empty sheet
     if remove_default_empty_sheet:
         spreadsheet_workbook = remove_default_empty_sheet_from_workbook(spreadsheet_workbook)
     # Fix the filename
-    if file_name is None or file_name == '':
-        file_name = 'Spreadsheet'
-    if not file_name.endswith('.xlsx'):
-        file_name = file_name + '.xlsx'
-    if output_folder is not None and output_folder != '':
-        file_name = output_folder + '/' + file_name
+    if not output_file_name: output_file_name = 'Spreadsheet'
+    if not output_file_name.endswith('.xlsx'): output_file_name = output_file_name + '.xlsx'
     # Save the file (not if empty)
-    if len(spreadsheet_workbook.worksheets) > 0:
-        spreadsheet_workbook.save(file_name)
+    try:
+        if len(spreadsheet_workbook.worksheets) > 0:
+            spreadsheet_workbook.save(output_file_name)
+            file_written = True
+            app_logger.info(f'Successfully written file to {output_file_name}!')
+    except:
+        file_written = False
+        app_logger.error(f'Failed to write file to {output_file_name}!')
+        app_logger.debug(traceback.format_exc())
+    # return
+    return file_written

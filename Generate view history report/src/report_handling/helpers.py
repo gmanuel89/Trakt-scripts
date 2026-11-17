@@ -1,7 +1,5 @@
 ## Import libraries
 import logging
-import pandas
-from report_handling.dataframe_handling import *
 from report_handling.csv_handling import *
 from report_handling.title_management import *
 from report_handling.report_generation import *
@@ -95,12 +93,9 @@ def save_report_to_csv_file(report: list[dict], filename: str) -> bool:
     file_written = False
     try:
         if len(report) > 0:
-            # Convert it to DataFrame
-            report = pandas.DataFrame(report)
             # Print report
-            report = fix_report_layout(report)
-            report.to_csv(filename, index=False)
-            file_written = True
+            report, ordered_csv_header = fix_report_layout(report)
+            file_written = write_csv_file(report, filename, ordered_csv_header)
     except:
         file_written = False
     # return
@@ -113,10 +108,8 @@ def save_report_to_excel_file(report: list[dict], filename: str, sheet_name: str
     file_written = False
     try:
         if len(report) > 0:
-            # Convert it to DataFrame
-            report = pandas.DataFrame(report)
             # Print report
-            report = fix_report_layout(report)
+            report, ordered_csv_header = fix_report_layout(report)
             output_workbook = write_spreadsheet_file(report, filename, sheet_name)
             file_written = True
     except:

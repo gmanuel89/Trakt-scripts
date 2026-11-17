@@ -2,7 +2,6 @@
 from constants.constants import *
 import traceback
 import logging
-import pandas
 from trakt.title_management import *
 from report_handling.csv_handling import *
 
@@ -16,7 +15,7 @@ def add_aliases_to_titles(viewed_items_report: list[dict], show_aliases: dict, l
     for vwd in viewed_items_report:
         try:
             # Get all the aliases for the title
-            title_aliases = show_aliases.get(vwd.get('traktId'))
+            title_aliases = show_aliases.get(vwd.get('traktId'),[])
             # Get aliases for each language
             for lang in languages:
                 alias_dictionary_key = f'alias ({str(lang).lower()})'
@@ -38,11 +37,11 @@ def add_original_titles_to_titles(viewed_items_report: list[dict], show_title_in
         vwd['originalTitle'] = vwd.get('title')
         try:
             # Retrieve information for the show
-            title_information = show_title_information.get(vwd.get('traktId'), None)
+            title_information = show_title_information.get(vwd.get('traktId'), {})
             # Determine the origin country of the title
-            origin_country = title_information.get('country', None)
+            origin_country = title_information.get('country')
             # Fetch the corresponding alias
-            for als in show_aliases.get(vwd.get('traktId')):
+            for als in show_aliases.get(vwd.get('traktId'),[]):
                 if str(als.get('country')) == str(origin_country):
                     # Store it in the output
                     vwd['originalTitle'] = als.get('title')
@@ -67,14 +66,14 @@ def add_percentage_of_completion_to_tv_shows(api_client: APIClient, viewed_items
                 history_for_selected_show = []
                 for hst in user_watch_history:
                     if vwd.get('type') == hst.get('type'):
-                        if vwd.get('traktId') == hst.get('show').get('ids').get('trakt'):
+                        if vwd.get('traktId') == hst.get('show',{}).get('ids',{}).get('trakt'):
                             history_for_selected_show.append(hst)
                 # Determine the episodes watched (discard duplicates from the history)
                 episodes_watched = []
                 for epsd in history_for_selected_show:
                     episode_details = {
-                        'season': epsd.get('episode').get('season'),
-                        'episode': epsd.get('episode').get('number')
+                        'season': epsd.get('episode',{}).get('season'),
+                        'episode': epsd.get('episode',{}).get('number')
                     }
                     if episode_details not in episodes_watched:
                         episodes_watched.append(episode_details)
@@ -89,7 +88,7 @@ def add_percentage_of_completion_to_tv_shows(api_client: APIClient, viewed_items
                 for seasn in tv_show_summary_info:
                     # Discard the specials
                     if seasn.get('number') != 0:
-                        total_number_of_episodes = total_number_of_episodes + len(seasn.get('episodes'))
+                        total_number_of_episodes = total_number_of_episodes + len(seasn.get('episodes',[]))
                 # Get the percentage
                 vwd['watchedEpisodes'] = str(number_of_watched_episodes) + '  of  ' + str(total_number_of_episodes)
                 vwd['percentageOfCompletion'] = round(number_of_watched_episodes / total_number_of_episodes * 100, 1)
@@ -112,7 +111,7 @@ def add_progress_to_tv_shows(viewed_items_report: list[dict], user_watch_history
                 history_for_selected_show = []
                 for hst in user_watch_history:
                     if vwd.get('type') == hst.get('type'):
-                        if vwd.get('traktId') == hst.get('show').get('ids').get('trakt'):
+                        if vwd.get('traktId') == hst.get('show',{}).get('ids',{}).get('trakt'):
                             history_for_selected_show.append(hst)
                 # Determine the last episode watched
                 latestSeason = 0
@@ -140,7 +139,7 @@ def add_series_is_over_flag_to_tv_shows(viewed_items_report: list[dict], show_ti
                 # Retrieve information for the show
                 title_information = show_title_information.get(vwd.get('traktId'))
                 # Determine if the series is over
-                series_status = title_information.get('status', None)
+                series_status = title_information.get('status')
                 # Store it in the output
                 vwd['showStatus'] = series_status
         except:
@@ -156,7 +155,7 @@ def determine_if_miniseries(tv_show_summary_info: list[dict]) -> bool:
     # Get the seasons
     tv_seasons = []
     for seasn in tv_show_summary_info:
-        tv_seasons.append(int(seasn.get('number')))
+        tv_seasons.append(int(seasn.get('number',0)))
     # Convert it to a set and sort it
     tv_seasons_unique = set(tv_seasons)
     tv_seasons_unique = sorted(tv_seasons_unique)
@@ -167,10 +166,10 @@ def determine_if_miniseries(tv_show_summary_info: list[dict]) -> bool:
     return is_miniseries
 
 ## Fix the layout of the output report
-def fix_report_layout(report_content: list[dict]) -> list[dict]:
+def fix_report_layout(report_content: list[dict]) -> tuple[list[dict], list[str]]:
     """Fix the layout of the output report"""
     # Rename and order headers
-    csv_header_renamed_and_ordered = {
+    csv_header_renamed_and_ordered_replacement_map = {
         'title': OUTPUT_REPORT_COLUMN_TITLE + ' (international english)',
         'originalTitle': OUTPUT_REPORT_COLUMN_TITLE + ' (original)',
         'year': OUTPUT_REPORT_COLUMN_YEAR,
@@ -188,43 +187,15 @@ def fix_report_layout(report_content: list[dict]) -> list[dict]:
         'episodeWatchedAt': OUTPUT_REPORT_COLUMN_WATCHED_AT,
         'movieWatchedAt': OUTPUT_REPORT_COLUMN_WATCHED_AT
     }
+    # Store the fixed and re-ordered headers
+    csv_header_renamed_and_ordered = []
+    for orig_col in csv_header_renamed_and_ordered_replacement_map.keys():
+        csv_header_renamed_and_ordered.append(csv_header_renamed_and_ordered_replacement_map.get(orig_col))
     # Dynamic alias
     for hd in report_content[0].keys():
         if 'alias' in str(hd).lower():
-            csv_header_renamed_and_ordered[hd] = OUTPUT_REPORT_COLUMN_TITLE + str(hd).split('alias')[1]
+            csv_header_renamed_and_ordered_replacement_map[hd] = OUTPUT_REPORT_COLUMN_TITLE + str(hd).split('alias')[1]
     # Remap headers
-    report_content = rename_csv_headers(report_content, csv_header_renamed_and_ordered)
+    report_content = rename_csv_headers(report_content, csv_header_renamed_and_ordered_replacement_map)
     # Return
-    return report_content
-
-## Fix the layout of the output report
-def fix_report_layout(report_content: pandas.DataFrame) -> pandas.DataFrame:
-    """Fix the layout of the output report"""
-    # Rename and order headers
-    csv_header_renamed_and_ordered = {
-        'title': OUTPUT_REPORT_COLUMN_TITLE + ' (international english)',
-        'originalTitle': OUTPUT_REPORT_COLUMN_TITLE + ' (original)',
-        'year': OUTPUT_REPORT_COLUMN_YEAR,
-        'type': OUTPUT_REPORT_COLUMN_TYPE,
-        'traktId': OUTPUT_REPORT_COLUMN_TRAKT_ID,
-        'imdbId': OUTPUT_REPORT_COLUMN_IMDB_ID,
-        'latestWatchedEpisode': OUTPUT_REPORT_COLUMN_LAST_WATCHED_EPISODE,
-        'watchedEpisodes': OUTPUT_REPORT_COLUMN_WATCHED_EPISODES,
-        'percentageOfCompletion': OUTPUT_REPORT_COLUMN_PERCENTAGE_OF_COMPLETION,
-        'showStatus': OUTPUT_REPORT_COLUMN_STATUS,
-        'listedAt': OUTPUT_REPORT_COLUMN_LISTED_AT,
-        'season': OUTPUT_REPORT_COLUMN_SEASON,
-        'episodeNumber': OUTPUT_REPORT_COLUMN_EPISODE_NUMBER,
-        'episodeTitle': OUTPUT_REPORT_COLUMN_EPISODE_TITLE,
-        'episodeWatchedAt': OUTPUT_REPORT_COLUMN_WATCHED_AT,
-        'movieWatchedAt': OUTPUT_REPORT_COLUMN_WATCHED_AT
-    }
-    # Dynamic alias
-    for hd in report_content.columns.to_list():
-        if 'alias' in str(hd).lower():
-            csv_header_renamed_and_ordered[hd] = OUTPUT_REPORT_COLUMN_TITLE + str(hd).split('alias')[1]
-    # Remap headers
-    report_content = report_content.rename(columns=csv_header_renamed_and_ordered)
-    # Return
-    return report_content
-    
+    return report_content, csv_header_renamed_and_ordered

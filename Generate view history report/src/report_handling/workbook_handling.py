@@ -96,6 +96,7 @@ def write_spreadsheet_to_workbook(workbook_content: list[dict], sheet_name: str,
         app_logger.info(f'Writing spreadsheet: {sheet_name}')
     except:
         app_logger.error(f'Cannot write spreadsheet: {sheet_name} !')
+        app_logger.debug(traceback.format_exc())
     # Return the same Workbook as input but with the added sheet
     return spreadsheet_workbook
 

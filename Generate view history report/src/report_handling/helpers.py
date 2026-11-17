@@ -1,6 +1,7 @@
 ## Import libraries
 import logging
 from report_handling.csv_handling import *
+from report_handling.workbook_handling import *
 from report_handling.title_management import *
 from report_handling.report_generation import *
 
@@ -101,18 +102,23 @@ def save_report_to_csv_file(report: list[dict], filename: str) -> bool:
     # return
     return file_written
 
-## Save report to Excel file
-def save_report_to_excel_file(report: list[dict], filename: str, sheet_name: str) -> bool:
-    """Save report to Excel file"""
+## Save report to Excel workbook
+def save_report_to_excel_workbook(report: list[dict], sheet_name: str, excel_workbook: openpyxl.Workbook) -> openpyxl.Workbook:
+    """Save report to Excel Workbook"""
     # Initialise output
-    file_written = False
+    if not excel_workbook:
+        excel_workbook = openpyxl.Workbook()
     try:
         if len(report) > 0:
             # Print report
             report, ordered_csv_header = fix_report_layout(report)
-            output_workbook = write_spreadsheet_file(report, filename, sheet_name)
-            file_written = True
+            excel_workbook = write_spreadsheet_to_workbook(report, sheet_name, excel_workbook, True, True)
     except:
-        file_written = False
+        pass
     # return
-    return file_written
+    return excel_workbook
+
+## Save report to Excel file
+def save_report_workbook_to_file(report_workbook: openpyxl.Workbook, filename: str) -> bool:
+    """Save report to Excel file"""
+    return write_workbook(report_workbook, filename, True)

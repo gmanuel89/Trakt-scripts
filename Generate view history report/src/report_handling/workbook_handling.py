@@ -85,7 +85,7 @@ def write_spreadsheet_to_workbook(workbook_content: list[dict], sheet_name: str,
 ## Write spreadsheet to file
 def write_workbook(spreadsheet_workbook: openpyxl.Workbook, output_file_name: str, remove_default_empty_sheet=True) -> bool:
     # Exit if there is no content
-    if not(spreadsheet_workbook) == 0: return False
+    if not spreadsheet_workbook: return False
     # Initialise output
     file_written = False
     # Remove the default empty sheet

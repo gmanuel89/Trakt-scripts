@@ -78,10 +78,11 @@ viewed_show_episodes_report, viewed_movies_report = generate_viewed_items_report
 date_file_suffix = datetime.now().strftime("%Y%m%d")
 app_logger.info('Writing watchlist report file...')
 if 'xls' in str(output_format).lower() or 'excel' in str(output_format).lower():
-    save_report_to_excel_file(watchlist_items_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', WATCHLIST_REPORT_FILE_NAME)
-    save_report_to_excel_file(viewed_items_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', HISTORY_REPORT_FILE_NAME)
-    save_report_to_excel_file(viewed_show_episodes_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', EPISODE_HISTORY_REPORT_FILE_NAME)
-    save_report_to_excel_file(viewed_movies_report, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx', MOVIE_HISTORY_REPORT_FILE_NAME)
+    trakt_report_workbook = save_report_to_excel_workbook(watchlist_items_report, WATCHLIST_REPORT_FILE_NAME, None)
+    trakt_report_workbook = save_report_to_excel_workbook(viewed_items_report, HISTORY_REPORT_FILE_NAME, trakt_report_workbook)
+    trakt_report_workbook = save_report_to_excel_workbook(viewed_show_episodes_report, EPISODE_HISTORY_REPORT_FILE_NAME, trakt_report_workbook)
+    trakt_report_workbook = save_report_to_excel_workbook(viewed_movies_report, MOVIE_HISTORY_REPORT_FILE_NAME, trakt_report_workbook)
+    save_report_workbook_to_file(trakt_report_workbook, f'{REPORT_EXCEL_FILE_NAME} {date_file_suffix}.xlsx')
 else:
     save_report_to_csv_file(watchlist_items_report, f'{WATCHLIST_REPORT_FILE_NAME} {date_file_suffix}.csv')
     save_report_to_csv_file(viewed_items_report, f'{HISTORY_REPORT_FILE_NAME} {date_file_suffix}.csv')

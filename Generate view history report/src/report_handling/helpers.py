@@ -112,7 +112,7 @@ def save_report_to_excel_workbook(report: list[dict], sheet_name: str, excel_wor
         if len(report) > 0:
             # Print report
             report, ordered_csv_header = fix_report_layout(report)
-            excel_workbook = write_spreadsheet_to_workbook(report, sheet_name, excel_workbook, True, True)
+            excel_workbook = write_spreadsheet_to_workbook(report, sheet_name, excel_workbook, True, True, ordered_csv_header)
     except:
         pass
     # return

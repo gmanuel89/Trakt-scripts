@@ -190,7 +190,10 @@ def fix_report_layout(report_content: list[dict]) -> tuple[list[dict], list[str]
     # Store the fixed and re-ordered headers
     csv_header_renamed_and_ordered = []
     for orig_col in csv_header_renamed_and_ordered_replacement_map.keys():
-        csv_header_renamed_and_ordered.append(csv_header_renamed_and_ordered_replacement_map.get(orig_col))
+        if csv_header_renamed_and_ordered_replacement_map.get(orig_col) not in csv_header_renamed_and_ordered:
+            csv_header_renamed_and_ordered.append(csv_header_renamed_and_ordered_replacement_map.get(orig_col))
+    # Harmonise CSV content (all rows with same headers)
+    report_content = harmonise_csv_content(report_content)
     # Dynamic alias
     for hd in report_content[0].keys():
         if 'alias' in str(hd).lower():

@@ -6,6 +6,44 @@ import traceback
 ## Initialise logger
 logger = logging.getLogger(__name__)
 
+## Get CSV header
+def get_csv_content_header(csv_content: list[list] | list[dict]) -> list[str]:
+    """Get CSV header"""
+    # Initialise output
+    csv_content_header = []
+    if len(csv_content) > 0:
+        if isinstance(csv_content, list):
+            if isinstance(csv_content[0], list):
+                csv_content_header = csv_content[0]
+            elif isinstance(csv_content[0], dict):
+                # Each item of the list is a dictionary, but there is no key if the cell value is empty
+                for csv_line in csv_content:
+                    csv_content_header.extend(list(csv_line.keys()))
+                csv_content_header = list(set(csv_content_header))
+            else:
+                pass
+    # return
+    return csv_content_header
+
+## Harmonise the CSV content
+def harmonise_csv_content(csv_content: list[dict]) -> list[dict]:
+    """
+    Harmonise the CSV content
+
+    Each item of the list is a dictionary, but there is no key if the cell value is empty
+    """
+    # Initialise output
+    harmonised_csv_content = csv_content
+    # Get the full header set
+    csv_content_header = get_csv_content_header(csv_content)
+    # Fill in the gaps
+    for row in csv_content:
+        for hd in csv_content_header:
+            if hd not in row.keys():
+                row[hd] = None
+    # return
+    return harmonised_csv_content
+
 ## Rename CSV headers
 def rename_csv_headers(csv_content: list[dict], renaming_map: dict) -> list[dict]:
     # For each line

@@ -58,44 +58,50 @@ def write_spreadsheet_to_workbook(workbook_content: list[dict], sheet_name: str,
         spreadsheet_workbook = openpyxl.Workbook()
     # Create dedicated sheet (truncate sheet name if it is too long)
     if len(sheet_name) > 31:
-        sheet_name = sheet_name[0:30]
+        sheet_name = sheet_name[:31]
+    # Handle duplicate sheet names
+    if sheet_name in spreadsheet_workbook.sheetnames:
+        base_name = sheet_name[:28]  # leave room for suffix
+        suffix = 1
+        while f"{base_name}_{suffix}" in spreadsheet_workbook.sheetnames:
+            suffix += 1
+        sheet_name = f"{base_name}_{suffix}"
+        app_logger.warning(f"Duplicate sheet name detected, renamed to: {sheet_name}")
+    # Handle empty input
+    if not workbook_content:
+        app_logger.warning(f"No content to write for sheet: {sheet_name}")
+        spreadsheet_workbook.create_sheet(sheet_name)
+        return spreadsheet_workbook
+    # Create the sheet in the Workbook
     spreadsheet_workbook.create_sheet(sheet_name)
     spreadsheet_sheet = spreadsheet_workbook[sheet_name]
     # CSV header
     csv_header = list(workbook_content[0].keys())
     # Custom column ordering (sort the ones specified, add back all the rest)
-    if custom_column_ordering is not None and len(custom_column_ordering) > 0:
-        custom_csv_header = []
-        for cust_col in custom_column_ordering:
-            for col in csv_header:
-                if col == cust_col:
-                    custom_csv_header.append(col)
-                    break
-        for col in csv_header:
-            if col not in custom_column_ordering:
-                custom_csv_header.append(col)
+    if custom_column_ordering:
+        # Keep specified columns first (only if they exist in the data)
+        custom_csv_header = [col for col in custom_column_ordering if col in csv_header]
+        # Append remaining columns not in the custom order
+        custom_csv_header += [col for col in csv_header if col not in custom_column_ordering]
     else:
         custom_csv_header = csv_header
     try:
         # Write the content (using a numbered map)
-        spreadsheet_column_map = {}
-        for i in range(len(custom_csv_header)):
-            spreadsheet_column_map[i+1] = custom_csv_header[i]
+        spreadsheet_column_map = {i + 1: col for i, col in enumerate(custom_csv_header)}
         spreadsheet_sheet.append(spreadsheet_column_map)
         # Content (get the position number from the header map), for each row...
-        for r in range(len(workbook_content)):
-            row = workbook_content[r]
-            row_dictionary_fixed_for_spreadsheet = row
-            # Replace the key with the positional number (to write the cells in the spreadsheet)
-            for i in range(len(custom_csv_header)):
-                row_dictionary_fixed_for_spreadsheet[i+1] = row.pop(custom_csv_header[i])
-            spreadsheet_sheet.append(row_dictionary_fixed_for_spreadsheet)
+        for row in workbook_content:
+            row_map = {
+                i + 1: row.get(col)  # returns None if key missing, no KeyError
+                for i, col in enumerate(custom_csv_header)
+            }
+            spreadsheet_sheet.append(row_map)
         # Apply styling to worksheet
         spreadsheet_sheet = apply_styling_to_spreadsheet(spreadsheet_sheet, freeze_header, freeze_first_column)
         # Print console message
         app_logger.info(f'Writing spreadsheet: {sheet_name}')
-    except:
-        app_logger.error(f'Cannot write spreadsheet: {sheet_name} !')
+    except Exception as e:
+        app_logger.error(f'Cannot write spreadsheet {sheet_name}! (Reason: {e})')
         app_logger.debug(traceback.format_exc())
     # Return the same Workbook as input but with the added sheet
     return spreadsheet_workbook

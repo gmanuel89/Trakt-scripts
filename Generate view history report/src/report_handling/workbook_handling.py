@@ -18,6 +18,7 @@ def apply_styling_to_spreadsheet(spreadsheet_sheet: Worksheet, freeze_header=Tru
     # Autoresize columns
     for col_index, col in enumerate(spreadsheet_sheet.columns, 1):
         spreadsheet_sheet.column_dimensions[get_column_letter(col_index)].auto_size = True
+    spreadsheet_sheet = autoresize_columns(spreadsheet_sheet)
     """
     column_letters = tuple(get_column_letter(col_number + 1) for col_number in range(spreadsheet_sheet.max_column))
     for column_letter in column_letters:
@@ -34,6 +35,26 @@ def apply_styling_to_spreadsheet(spreadsheet_sheet: Worksheet, freeze_header=Tru
         spreadsheet_sheet.freeze_panes = 'B2'
     # return
     return spreadsheet_sheet
+
+## Autoresize columns
+def autoresize_columns(worksheet: Worksheet) -> Worksheet:
+    """Adjust column widths based on content length."""
+    for column_cells in worksheet.columns:
+        max_length = 0
+        column_letter = get_column_letter(column_cells[0].column)
+        for cell in column_cells:
+            try:
+                # Calculate length of cell content
+                if cell.value:
+                    cell_length = len(str(cell.value))
+                    if cell_length > max_length:
+                        max_length = cell_length
+            except:
+                pass
+        # Set width with some padding (adjust multiplier as needed)
+        adjusted_width = (max_length + 2) * 1.2
+        worksheet.column_dimensions[column_letter].width = adjusted_width
+    return worksheet
 
 ## Write spreadsheet to file
 def remove_default_empty_sheet_from_workbook(spreadsheet_workbook: openpyxl.Workbook) -> openpyxl.Workbook:
